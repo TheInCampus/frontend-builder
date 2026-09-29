@@ -1,0 +1,14 @@
+{
+  "name": "frontend-builder",
+  "private": true,
+  "packageManager": "pnpm@12.6.0",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @frontend-builder/web dev",
+    "build": "pnpm --filter @frontend-builder/web build",
+    "lint": "pnpm --filter @frontend-builder/web lint",
+    "typecheck": "pnpm --filter @frontend-builder/web typecheck"
+  }
+}
