@@ -39,6 +39,12 @@ Builder drafts currently save in browser `localStorage` as an MVP placeholder
 until the backend's app/page persistence API is available. Authentication,
 publishing, and deployment are UI scaffolds, not connected services.
 
+The app data-model workspace is available at `/apps/[appId]/data`. It supports
+creating, renaming, and deleting objects, and creating, editing, and deleting
+typed fields, including relations between objects. Schema drafts are saved in
+browser `localStorage` until the backend schema API is available; they are not
+yet used to generate APIs or database tables.
+
 ## Configuration and checks
 
 Set `NEXT_PUBLIC_API_URL` to the NestJS API base URL in `.env.local`.

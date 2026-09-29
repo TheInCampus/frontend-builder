@@ -45,17 +45,39 @@ export function useDataModel(appId: string) {
   }
 
   function removeObject(id: string) {
+    const isReferenced = model.objects.some((object) =>
+      object.id !== id && object.fields.some((field) =>
+        field.type === "relation" && field.relatedObjectId === id
+      )
+    );
+    if (isReferenced) return false;
     setModel((current) => ({ ...current, objects: current.objects.filter((object) => object.id !== id) }));
+    return true;
   }
 
-  function addField(objectId: string, name: string, type: DataFieldType, required: boolean, fieldId?: string): boolean {
+  function addField(
+    objectId: string,
+    name: string,
+    type: DataFieldType,
+    required: boolean,
+    relatedObjectId?: string,
+    fieldId?: string,
+  ): boolean {
     const trimmedName = name.trim();
     const object = model.objects.find((item) => item.id === objectId);
-    if (!object || !trimmedName || object.fields.some((field) =>
+    const relationTargetExists = type !== "relation" ||
+      model.objects.some((item) => item.id === relatedObjectId);
+    if (!object || !trimmedName || !relationTargetExists || object.fields.some((field) =>
       field.id !== fieldId && field.name.toLowerCase() === trimmedName.toLowerCase()
     )) return false;
 
-    const field: DataField = { id: fieldId ?? crypto.randomUUID(), name: trimmedName, type, required };
+    const field: DataField = {
+      id: fieldId ?? crypto.randomUUID(),
+      name: trimmedName,
+      type,
+      required,
+      ...(type === "relation" ? { relatedObjectId } : {}),
+    };
     setModel((current) => ({
       ...current,
       objects: current.objects.map((item) => {

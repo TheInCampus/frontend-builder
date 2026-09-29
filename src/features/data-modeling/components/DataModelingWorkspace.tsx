@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useDataModel } from "@/features/data-modeling/hooks/useDataModel";
 import type { DataField, DataFieldType, DataObject } from "@/features/data-modeling/types";
 
@@ -9,25 +9,29 @@ const fieldTypes: { value: DataFieldType; label: string }[] = [
   { value: "number", label: "Number" },
   { value: "boolean", label: "Boolean" },
   { value: "date", label: "Date" },
+  { value: "relation", label: "Relation" },
 ];
 
 function FieldForm({
   field,
+  objects,
   onCancel,
   onSave,
 }: {
   field: DataField | null;
+  objects: DataObject[];
   onCancel: () => void;
-  onSave: (name: string, type: DataFieldType, required: boolean, fieldId?: string) => boolean;
+  onSave: (name: string, type: DataFieldType, required: boolean, relatedObjectId?: string, fieldId?: string) => boolean;
 }) {
   const [name, setName] = useState(field?.name ?? "");
   const [type, setType] = useState<DataFieldType>(field?.type ?? "text");
   const [required, setRequired] = useState(field?.required ?? false);
+  const [relatedObjectId, setRelatedObjectId] = useState(field?.relatedObjectId ?? objects[0]?.id ?? "");
   const [error, setError] = useState("");
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (onSave(name, type, required, field?.id)) {
+    if (onSave(name, type, required, type === "relation" ? relatedObjectId : undefined, field?.id)) {
       onCancel();
     } else {
       setError("Enter a unique field name.");
@@ -46,6 +50,14 @@ function FieldForm({
           {fieldTypes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
         </select>
       </label>
+      {type === "relation" && (
+        <label className="data-form-label">
+          Related object
+          <select onChange={(event) => setRelatedObjectId(event.target.value)} required value={relatedObjectId}>
+            {objects.map((object) => <option key={object.id} value={object.id}>{object.name}</option>)}
+          </select>
+        </label>
+      )}
       <label className="data-required-toggle">
         <input checked={required} onChange={(event) => setRequired(event.target.checked)} type="checkbox" />
         Required field
@@ -66,10 +78,16 @@ export function DataModelingWorkspace({ appId }: { appId: string }) {
   const [objectError, setObjectError] = useState("");
   const [nameDraft, setNameDraft] = useState("");
   const [nameError, setNameError] = useState("");
+  const [objectDeleteError, setObjectDeleteError] = useState("");
   const [editingField, setEditingField] = useState<DataField | null>(null);
   const [addingField, setAddingField] = useState(false);
 
   const selectedObject = model.objects.find((object) => object.id === selectedId) ?? model.objects[0] ?? null;
+  const selectedObjectName = selectedObject?.name;
+
+  useEffect(() => {
+    if (selectedObjectName !== undefined) setNameDraft(selectedObjectName);
+  }, [selectedObjectName]);
 
   function createObject(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -82,12 +100,14 @@ export function DataModelingWorkspace({ appId }: { appId: string }) {
     setNameDraft(object.name);
     setNewObjectName("");
     setObjectError("");
+    setObjectDeleteError("");
   }
 
   function selectObject(object: DataObject) {
     setSelectedId(object.id);
     setNameDraft(object.name);
     setNameError("");
+    setObjectDeleteError("");
     setEditingField(null);
     setAddingField(false);
   }
@@ -104,16 +124,26 @@ export function DataModelingWorkspace({ appId }: { appId: string }) {
   function deleteObject() {
     if (!selectedObject || !window.confirm(`Delete ${selectedObject.name} and all its fields?`)) return;
     const remaining = model.objects.filter((object) => object.id !== selectedObject.id);
-    removeObject(selectedObject.id);
+    if (!removeObject(selectedObject.id)) {
+      setObjectDeleteError("This object is referenced by a relation field. Remove that relation before deleting it.");
+      return;
+    }
     setSelectedId(remaining[0]?.id ?? null);
     setNameDraft(remaining[0]?.name ?? "");
+    setObjectDeleteError("");
     setAddingField(false);
     setEditingField(null);
   }
 
-  function saveField(name: string, type: DataFieldType, required: boolean, fieldId?: string) {
+  function saveField(
+    name: string,
+    type: DataFieldType,
+    required: boolean,
+    relatedObjectId?: string,
+    fieldId?: string,
+  ) {
     if (!selectedObject) return false;
-    const success = addField(selectedObject.id, name, type, required, fieldId);
+    const success = addField(selectedObject.id, name, type, required, relatedObjectId, fieldId);
     if (success) {
       setAddingField(false);
       setEditingField(null);
@@ -196,6 +226,7 @@ export function DataModelingWorkspace({ appId }: { appId: string }) {
                 </div>
                 <button className="data-delete-object" onClick={deleteObject} type="button">Delete object</button>
               </div>
+              {objectDeleteError && <p className="data-form-error" role="alert">{objectDeleteError}</p>}
 
               <div className="data-fields-heading">
                 <div><h2>Fields</h2><p>Describe the information stored on each record.</p></div>
@@ -204,8 +235,8 @@ export function DataModelingWorkspace({ appId }: { appId: string }) {
                 )}
               </div>
 
-              {addingField && <FieldForm onCancel={() => setAddingField(false)} onSave={saveField} field={null} />}
-              {editingField && <FieldForm onCancel={() => setEditingField(null)} onSave={saveField} field={editingField} />}
+              {addingField && <FieldForm onCancel={() => setAddingField(false)} onSave={saveField} field={null} objects={model.objects} />}
+              {editingField && <FieldForm onCancel={() => setEditingField(null)} onSave={saveField} field={editingField} objects={model.objects} />}
 
               {selectedObject.fields.length > 0 ? (
                 <div className="data-table-wrap">
@@ -215,7 +246,11 @@ export function DataModelingWorkspace({ appId }: { appId: string }) {
                       {selectedObject.fields.map((field) => (
                         <tr key={field.id}>
                           <td><strong>{field.name}</strong></td>
-                          <td><span className="data-type-badge">{fieldTypes.find((item) => item.value === field.type)?.label}</span></td>
+                          <td><span className="data-type-badge">
+                            {field.type === "relation"
+                              ? `→ ${model.objects.find((object) => object.id === field.relatedObjectId)?.name ?? "Missing object"}`
+                              : fieldTypes.find((item) => item.value === field.type)?.label}
+                          </span></td>
                           <td>{field.required ? <span className="data-required-badge">Required</span> : <span className="data-optional-badge">Optional</span>}</td>
                           <td className="data-row-actions">
                             <button aria-label={`Edit ${field.name}`} onClick={() => { setAddingField(false); setEditingField(field); }} type="button">Edit</button>

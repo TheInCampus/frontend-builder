@@ -12,6 +12,7 @@ export default function DashboardLayout({
         <Link className="sidebar-link active" href="/apps"><span>▦</span> All apps</Link>
         <div className="sidebar-label sidebar-label-spaced">YOUR SPACE</div>
         <Link className="sidebar-link" href="/apps/demo"><span>◈</span> Untitled app</Link>
+        <Link className="sidebar-link" href="/apps/demo/data"><span>▤</span> Data model</Link>
         <div className="sidebar-bottom">A simpler way to build.</div>
       </aside>
       <main className="dashboard-main">{children}</main>
