@@ -1,2 +1,50 @@
 # frontend-builder
-Visual drag-drop builder UI - Next.js + React application
+
+Visual drag-and-drop builder UI built with Next.js and React. Next.js provides
+the application shell and routing; the interactive editor runs as a
+client-side feature inside the same application.
+
+## Getting started
+
+```bash
+npm install
+cp .env.example .env.local
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). The example workspace is
+available at `/apps`; its builder is at `/apps/demo/builder`.
+
+## Project structure
+
+```text
+src/
+├── app/                  # App Router pages and layouts
+│   ├── (auth)/           # Sign-in and sign-up screens
+│   ├── (dashboard)/      # Authenticated app-management shell
+│   └── preview/[appId]/  # Standalone published-app preview
+├── components/           # UI shared across routes and features
+├── features/builder/     # Browser-first editor, state and JSON persistence
+├── lib/api/              # Client for the separate NestJS backend
+├── styles/               # Shared design tokens
+└── types/                # Shared application types
+```
+
+The builder is intentionally a client component because canvas interactions,
+editor state, and local draft persistence require browser APIs. Route-level
+pages and layouts remain in the Next.js App Router. Backend CRUD APIs belong in
+the NestJS service; `src/lib/api/client.ts` is the frontend integration point.
+
+Builder drafts currently save in browser `localStorage` as an MVP placeholder
+until the backend's app/page persistence API is available. Authentication,
+publishing, and deployment are UI scaffolds, not connected services.
+
+## Configuration and checks
+
+Set `NEXT_PUBLIC_API_URL` to the NestJS API base URL in `.env.local`.
+
+```bash
+npm run lint
+npm run typecheck
+npm run build
+```
