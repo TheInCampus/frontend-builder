@@ -16,7 +16,11 @@ export function BuilderCanvas({ appId }: { appId: string }) {
   const selected = components.find((component) => component.id === selectedId);
 
   function addComponent(type: BuilderComponentType) {
-    const component = createBuilderComponent(type, crypto.randomUUID());
+    const id =
+      typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : `component-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const component = createBuilderComponent(type, id);
     setComponents((current) => [...current, component]);
     setSelectedId(component.id);
   }
