@@ -1,0 +1,12 @@
+{
+  "name": "@frontend-builder/builder-core",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@frontend-builder/types": "workspace:*"
+  },
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}
