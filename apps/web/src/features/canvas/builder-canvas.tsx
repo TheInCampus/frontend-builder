@@ -8,18 +8,19 @@ import type {
   BuilderComponent,
   BuilderComponentType,
 } from "@frontend-builder/types";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 export function BuilderCanvas({ appId }: { appId: string }) {
   const [components, setComponents] = useState<BuilderComponent[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const fallbackId = useRef(0);
   const selected = components.find((component) => component.id === selectedId);
 
   function addComponent(type: BuilderComponentType) {
     const id =
       typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
         ? crypto.randomUUID()
-        : `component-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        : `component-${++fallbackId.current}`;
     const component = createBuilderComponent(type, id);
     setComponents((current) => [...current, component]);
     setSelectedId(component.id);
