@@ -1,4 +1,36 @@
 @import url("https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap");
+@import "tailwindcss";
+@plugin "daisyui" {
+  themes: canvas --default;
+}
+@plugin "daisyui/theme" {
+  name: "canvas";
+  default: true;
+  color-scheme: light;
+  --color-base-100: #ffffff;
+  --color-base-200: #f7f8f5;
+  --color-base-300: #e9ebe5;
+  --color-base-content: #20251f;
+  --color-primary: #57785d;
+  --color-primary-content: #ffffff;
+  --color-secondary: #3f6046;
+  --color-secondary-content: #ffffff;
+  --color-accent: #edf3eb;
+  --color-accent-content: #20251f;
+  --color-neutral: #20251f;
+  --color-neutral-content: #ffffff;
+  --color-info: #57785d;
+  --color-info-content: #ffffff;
+  --color-success: #57785d;
+  --color-success-content: #ffffff;
+  --color-warning: #d9a441;
+  --color-warning-content: #20251f;
+  --color-error: #c4553f;
+  --color-error-content: #ffffff;
+  --radius-box: 12px;
+  --radius-field: 7px;
+  --radius-selector: 7px;
+}
 
 :root {
   --ink: #20251f;
