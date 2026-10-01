@@ -38,6 +38,7 @@ export async function POST(request: Request, { params }: RouteContext) {
     upstream = await fetch(`${apiUrl}/metaplatform/auth/${action}`, {
       method: "POST",
       cache: "no-store",
+      redirect: "manual",
       headers: {
         Accept: "application/json",
         ...(body === undefined ? {} : { "Content-Type": "application/json" }),
