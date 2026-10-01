@@ -36,8 +36,24 @@ pages and layouts remain in the Next.js App Router. Backend CRUD APIs belong in
 the NestJS service; `src/lib/api/client.ts` is the frontend integration point.
 
 Builder drafts currently save in browser `localStorage` as an MVP placeholder
-until the backend's app/page persistence API is available. Authentication,
-publishing, and deployment are UI scaffolds, not connected services.
+until the backend's app/page persistence API is available. Publishing and
+deployment are UI scaffolds, not connected services.
+
+Authentication requests are proxied by the Next.js server to the backend's
+`POST /metaplatform/auth/{signup|signin|signout|forget}` endpoints. The current
+request payloads are `{ name, email, password }` for signup, `{ email, password
+}` for signin, `{ email }` for forget, and no body for signout; update the
+request types in `src/features/auth/types.ts` when the backend contract is
+confirmed. The backend must issue and clear a host-only `HttpOnly`, `Secure`,
+`SameSite=Lax`, `Path=/` session cookie named `metaplatform_session` (or the
+name configured with `AUTH_SESSION_COOKIE`). Workspace routes require that
+cookie, and the backend remains responsible for validating the session on
+protected data requests. Auth credentials are submitted in POST bodies and are
+never saved in browser storage.
+
+The interface includes English (`en`) and Spanish (`es`) locale resources.
+`canvas_locale` stores the non-sensitive language preference; add translations
+in `src/i18n/messages.ts` when introducing new user-facing copy.
 
 The app data-model workspace is available at `/apps/[appId]/data`. It supports
 creating, renaming, and deleting objects, and creating, editing, and deleting

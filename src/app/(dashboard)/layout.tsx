@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { SignOutButton } from "@/features/auth/components/SignOutButton";
 import { useLocale } from "@/i18n/LocaleProvider";
 
 export default function DashboardLayout({
@@ -18,7 +17,7 @@ export default function DashboardLayout({
         <div className="sidebar-label sidebar-label-spaced">{t("yourSpace")}</div>
         <Link className="sidebar-link" href="/apps/demo"><span>◈</span> {t("untitledApp")}</Link>
         <Link className="sidebar-link" href="/apps/demo/data"><span>▤</span> {t("dataModel")}</Link>
-        <div className="sidebar-bottom">{t("dashboardMotto")}<SignOutButton /></div>
+        <div className="sidebar-bottom">{t("dashboardMotto")}</div>
       </aside>
       <main className="dashboard-main">{children}</main>
     </div>

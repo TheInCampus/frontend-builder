@@ -18,6 +18,7 @@ export async function POST(request: Request, { params }: RouteContext) {
   }
 
   const sessionCookieName = process.env.AUTH_SESSION_COOKIE ?? "metaplatform_session";
+  // Forward only the configured session cookie, never unrelated browser cookies.
   const sessionCookie = request.headers.get("cookie")
     ?.split(";")
     .map((cookie) => cookie.trim())
@@ -55,5 +56,6 @@ export async function POST(request: Request, { params }: RouteContext) {
     headers.append("set-cookie", cookie);
   }
 
-  return new Response(await upstream.text(), { status: upstream.status, headers });
+  const responseBody = await upstream.text();
+  return new Response(responseBody || null, { status: upstream.status, headers });
 }

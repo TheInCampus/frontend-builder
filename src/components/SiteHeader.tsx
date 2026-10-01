@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { SignOutButton } from "@/features/auth/components/SignOutButton";
 import { useLocale } from "@/i18n/LocaleProvider";
 import type { Locale } from "@/i18n/messages";
 
 export function SiteHeader() {
   const { locale, setLocale, t } = useLocale();
+  const pathname = usePathname();
 
   return (
     <header className="topbar">
@@ -14,7 +17,7 @@ export function SiteHeader() {
         Canvas
       </Link>
       <nav aria-label={t("workspaceNav")} className="topbar-nav">
-        <Link href="/apps">{t("myApps")}</Link>
+        {!pathname.startsWith("/apps") && <Link href="/apps">{t("myApps")}</Link>}
         <label className="locale-select">
           <span className="visually-hidden">{t("language")}</span>
           <select aria-label={t("language")} onChange={(event) => setLocale(event.target.value as Locale)} value={locale}>
@@ -22,7 +25,8 @@ export function SiteHeader() {
             <option value="es">Español</option>
           </select>
         </label>
-        <Link className="button button-small" href="/login">{t("signIn")}</Link>
+        {pathname.startsWith("/apps") && <SignOutButton className="button button-small button-secondary" />}
+        {!pathname.startsWith("/apps") && <Link className="button button-small" href="/login">{t("signIn")}</Link>}
       </nav>
     </header>
   );

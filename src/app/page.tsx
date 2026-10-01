@@ -17,8 +17,8 @@ export default function HomePage() {
         <Link className="button" href="/apps">{t("openWorkspace")} <span aria-hidden="true">↗</span></Link>
         <Link className="text-link" href="/signup">{t("createAccount")}</Link>
       </div>
-      <div className="landing-preview" aria-label="Builder workspace preview">
-        <div className="preview-window-bar"><i /><i /><i /><span>Untitled app · Builder</span></div>
+      <div className="landing-preview" aria-label={`${t("builder")} preview`}>
+        <div className="preview-window-bar"><i /><i /><i /><span>{t("untitledApp")} · {t("builder")}</span></div>
         <div className="preview-window-content">
           <div className="preview-mini-sidebar"><b /><b /><b /><b /></div>
           <div className="preview-mini-canvas">

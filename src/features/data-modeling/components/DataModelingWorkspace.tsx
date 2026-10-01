@@ -37,7 +37,7 @@ function FieldForm({
     if (onSave(name, type, required, type === "relation" ? relatedObjectId : undefined, field?.id)) {
       onCancel();
     } else {
-      setError("Enter a unique field name.");
+      setError(t("uniqueFieldName"));
     }
   }
 
@@ -218,7 +218,7 @@ export function DataModelingWorkspace({ appId }: { appId: string }) {
                   <div className="eyebrow">{t("object")}</div>
                   <form className="data-object-rename" onSubmit={saveObjectName}>
                     <input
-                      aria-label="Object name"
+                      aria-label={t("object")}
                       maxLength={80}
                       onChange={(event) => setNameDraft(event.target.value)}
                       required

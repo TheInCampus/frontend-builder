@@ -90,6 +90,7 @@ export const messages = {
     allChangesSaved: "All changes saved",
     loadingDraft: "Loading draft…",
     pageEditor: "Page editor",
+    builder: "Builder",
     editorView: "Editor view",
     clearCanvas: "Your canvas is clear.",
     canvasInstruction: "Drag a component here or choose one from the palette to begin.",
@@ -237,6 +238,7 @@ export const messages = {
     allChangesSaved: "Todos los cambios están guardados",
     loadingDraft: "Cargando borrador…",
     pageEditor: "Editor de página",
+    builder: "Editor",
     editorView: "Vista del editor",
     clearCanvas: "El lienzo está vacío.",
     canvasInstruction: "Arrastra un componente aquí o elige uno de la paleta para empezar.",
@@ -292,7 +294,6 @@ export const messages = {
     booleanType: "Booleano",
     dateType: "Fecha",
     relationType: "Relación",
-    signOutFailed: "No se pudo cerrar la sesión. Inténtalo de nuevo.",
   },
 } as const;
 

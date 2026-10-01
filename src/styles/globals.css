@@ -104,7 +104,7 @@ button { color: inherit; }
 .auth-footer a { color: var(--accent-dark); font-weight: 600; }
 .auth-error { margin: 8px 0 0; color: #a4514b; font-size: 12px; }
 .auth-success { margin-top: 20px; color: var(--accent-dark); font-size: 13px; }
-.locale-select select { border: 1px solid var(--line); border-radius: 6px; padding: 7px 8px; background: #fff; color: inherit; font-size: 12px; }
+.locale-select select { border: 1px solid var(--line); border-radius: 6px; padding: 7px 5px; background: #fff; color: inherit; font-size: 12px; }
 .sidebar-signout { display: block; margin-top: 14px; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
 
 .dashboard-shell { min-height: calc(100vh - 72px); display: grid; grid-template-columns: 225px minmax(0, 1fr); }
@@ -292,8 +292,8 @@ button { color: inherit; }
   .data-fields-panel { padding: 23px 20px; }
 }
 @media (max-width: 650px) {
-  .topbar { height: 62px; padding: 0 19px; }
-  .topbar-nav { gap: 14px; }
+  .topbar { height: 62px; padding: 0 12px; }
+  .topbar-nav { gap: 9px; }
   .landing { padding-top: 73px; }
   .landing h1 { letter-spacing: -2.3px; }
   .landing-preview { margin-top: 52px; }

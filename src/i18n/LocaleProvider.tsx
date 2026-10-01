@@ -22,7 +22,8 @@ export function LocaleProvider({
 
   useEffect(() => {
     document.documentElement.lang = locale;
-    document.cookie = `canvas_locale=${locale}; Path=/; Max-Age=31536000; SameSite=Lax`;
+    const secure = window.location.protocol === "https:" ? "; Secure" : "";
+    document.cookie = `canvas_locale=${locale}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
   }, [locale]);
 
   const value = useMemo(

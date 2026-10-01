@@ -9,7 +9,13 @@ import { useLocale } from "@/i18n/LocaleProvider";
 
 type AuthFormMode = "signin" | "signup" | "forget";
 
-export function AuthForm({ mode }: { mode: AuthFormMode }) {
+export function AuthForm({
+  mode,
+  redirectTo,
+}: {
+  mode: AuthFormMode;
+  redirectTo?: string;
+}) {
   const { t } = useLocale();
   const router = useRouter();
   const [pending, setPending] = useState(false);
@@ -49,7 +55,7 @@ export function AuthForm({ mode }: { mode: AuthFormMode }) {
           email,
           password,
         });
-        router.replace("/apps");
+        router.replace(redirectTo ?? "/apps");
         router.refresh();
       } else if (mode === "signup") {
         await submitAuthAction<SignUpRequest>("signup", {
@@ -57,7 +63,7 @@ export function AuthForm({ mode }: { mode: AuthFormMode }) {
           email,
           password,
         });
-        router.replace("/apps");
+        router.replace(redirectTo ?? "/apps");
         router.refresh();
       } else {
         await submitAuthAction<ForgetPasswordRequest>("forget", { email });
