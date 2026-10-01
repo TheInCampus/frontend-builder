@@ -2,6 +2,7 @@
 
 import type { DragEvent } from "react";
 import type { BuilderComponent, BuilderComponentType } from "@/features/builder/types";
+import { useLocale } from "@/i18n/LocaleProvider";
 
 function ComponentPreview({ component }: { component: BuilderComponent }) {
   switch (component.type) {
@@ -23,6 +24,7 @@ export function Canvas({
   onSelect: (id: string) => void;
   onDropComponent: (type: BuilderComponentType) => void;
 }) {
+  const { t } = useLocale();
   function handleDrop(event: DragEvent<HTMLDivElement>) {
     event.preventDefault();
     const type = event.dataTransfer.getData("application/canvas-component") as BuilderComponentType;
@@ -36,12 +38,12 @@ export function Canvas({
       onDrop={handleDrop}
     >
       <div className="canvas-paper">
-        <div className="canvas-page-label"><span className="status-dot" /> PAGE · HOME</div>
+        <div className="canvas-page-label"><span className="status-dot" /> {t("pageHome")}</div>
         {components.length === 0 ? (
           <div className="canvas-empty">
             <div className="canvas-empty-icon">＋</div>
-            <h2>Your canvas is clear.</h2>
-            <p>Drag a component here or choose one from the palette to begin.</p>
+            <h2>{t("clearCanvas")}</h2>
+            <p>{t("canvasInstruction")}</p>
           </div>
         ) : (
           <div className="canvas-elements">
@@ -59,7 +61,7 @@ export function Canvas({
             ))}
           </div>
         )}
-        <div className="canvas-page-footer"><span>HOME</span><span>100%</span></div>
+        <div className="canvas-page-footer"><span>{t("homePage")}</span><span>100%</span></div>
       </div>
     </div>
   );

@@ -1,17 +1,21 @@
+"use client";
+
 import Link from "next/link";
+import { useLocale } from "@/i18n/LocaleProvider";
 
 export default function HomePage() {
+  const { t } = useLocale();
+
   return (
     <main className="landing">
-      <div className="eyebrow"><span className="status-dot" /> YOUR IDEAS, IN THE MAKING</div>
-      <h1>Build the app<br /><span>you have in mind.</span></h1>
+      <div className="eyebrow"><span className="status-dot" /> {t("yourIdeas")}</div>
+      <h1>{t("landingTitle")}<br /><span>{t("landingTitleAccent")}</span></h1>
       <p className="landing-copy">
-        Go from a blank canvas to a working interface. Arrange components, tune
-        their properties, and preview your app as you build.
+        {t("landingCopy")}
       </p>
       <div className="landing-actions">
-        <Link className="button" href="/apps">Open your workspace <span aria-hidden="true">↗</span></Link>
-        <Link className="text-link" href="/signup">Create an account</Link>
+        <Link className="button" href="/apps">{t("openWorkspace")} <span aria-hidden="true">↗</span></Link>
+        <Link className="text-link" href="/signup">{t("createAccount")}</Link>
       </div>
       <div className="landing-preview" aria-label="Builder workspace preview">
         <div className="preview-window-bar"><i /><i /><i /><span>Untitled app · Builder</span></div>

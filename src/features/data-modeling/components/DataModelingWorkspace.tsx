@@ -3,13 +3,15 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useDataModel } from "@/features/data-modeling/hooks/useDataModel";
 import type { DataField, DataFieldType, DataObject } from "@/features/data-modeling/types";
+import { useLocale } from "@/i18n/LocaleProvider";
+import type { MessageKey } from "@/i18n/messages";
 
-const fieldTypes: { value: DataFieldType; label: string }[] = [
-  { value: "text", label: "Text" },
-  { value: "number", label: "Number" },
-  { value: "boolean", label: "Boolean" },
-  { value: "date", label: "Date" },
-  { value: "relation", label: "Relation" },
+const fieldTypes: { value: DataFieldType; labelKey: MessageKey }[] = [
+  { value: "text", labelKey: "textType" },
+  { value: "number", labelKey: "numberType" },
+  { value: "boolean", labelKey: "booleanType" },
+  { value: "date", labelKey: "dateType" },
+  { value: "relation", labelKey: "relationType" },
 ];
 
 function FieldForm({
@@ -23,6 +25,7 @@ function FieldForm({
   onCancel: () => void;
   onSave: (name: string, type: DataFieldType, required: boolean, relatedObjectId?: string, fieldId?: string) => boolean;
 }) {
+  const { t } = useLocale();
   const [name, setName] = useState(field?.name ?? "");
   const [type, setType] = useState<DataFieldType>(field?.type ?? "text");
   const [required, setRequired] = useState(field?.required ?? false);
@@ -41,18 +44,18 @@ function FieldForm({
   return (
     <form className="data-field-form" onSubmit={submit}>
       <label className="data-form-label">
-        Field name
+        {t("fieldName")}
         <input autoFocus maxLength={80} onChange={(event) => setName(event.target.value)} required value={name} />
       </label>
       <label className="data-form-label">
-        Type
+        {t("type")}
         <select onChange={(event) => setType(event.target.value as DataFieldType)} value={type}>
-          {fieldTypes.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+          {fieldTypes.map((item) => <option key={item.value} value={item.value}>{t(item.labelKey)}</option>)}
         </select>
       </label>
       {type === "relation" && (
         <label className="data-form-label">
-          Related object
+          {t("relatedObject")}
           <select onChange={(event) => setRelatedObjectId(event.target.value)} required value={relatedObjectId}>
             {objects.map((object) => <option key={object.id} value={object.id}>{object.name}</option>)}
           </select>
@@ -60,18 +63,19 @@ function FieldForm({
       )}
       <label className="data-required-toggle">
         <input checked={required} onChange={(event) => setRequired(event.target.checked)} type="checkbox" />
-        Required field
+        {t("requiredField")}
       </label>
       {error && <p className="data-form-error" role="alert">{error}</p>}
       <div className="data-form-actions">
-        <button className="button button-small button-secondary" onClick={onCancel} type="button">Cancel</button>
-        <button className="button button-small" type="submit">{field ? "Save field" : "Add field"}</button>
+        <button className="button button-small button-secondary" onClick={onCancel} type="button">{t("cancel")}</button>
+        <button className="button button-small" type="submit">{field ? t("saveField") : t("addFieldSubmit")}</button>
       </div>
     </form>
   );
 }
 
 export function DataModelingWorkspace({ appId }: { appId: string }) {
+  const { t } = useLocale();
   const { model, ready, saved, addObject, renameObject, removeObject, addField, removeField } = useDataModel(appId);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [newObjectName, setNewObjectName] = useState("");
@@ -93,7 +97,7 @@ export function DataModelingWorkspace({ appId }: { appId: string }) {
     event.preventDefault();
     const object = addObject(newObjectName);
     if (!object) {
-      setObjectError("Use a unique name for this object.");
+      setObjectError(t("uniqueObjectName"));
       return;
     }
     setSelectedId(object.id);
@@ -115,17 +119,17 @@ export function DataModelingWorkspace({ appId }: { appId: string }) {
   function saveObjectName(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selectedObject || !renameObject(selectedObject.id, nameDraft)) {
-      setNameError("Enter a unique object name.");
+      setNameError(t("uniqueObjectName"));
       return;
     }
     setNameError("");
   }
 
   function deleteObject() {
-    if (!selectedObject || !window.confirm(`Delete ${selectedObject.name} and all its fields?`)) return;
+    if (!selectedObject || !window.confirm(`${t("deleteObjectConfirm")} (${selectedObject.name})`)) return;
     const remaining = model.objects.filter((object) => object.id !== selectedObject.id);
     if (!removeObject(selectedObject.id)) {
-      setObjectDeleteError("This object is referenced by a relation field. Remove that relation before deleting it.");
+      setObjectDeleteError(t("relationDeleteError"));
       return;
     }
     setSelectedId(remaining[0]?.id ?? null);
@@ -155,19 +159,19 @@ export function DataModelingWorkspace({ appId }: { appId: string }) {
     <main className="data-model-page">
       <header className="data-model-header">
         <div>
-          <div className="eyebrow">APP DATA</div>
-          <h1>Data model</h1>
-          <p>Define the objects and fields that shape your app’s data.</p>
+          <div className="eyebrow">{t("appData")}</div>
+          <h1>{t("dataModel")}</h1>
+          <p>{t("defineObjects")}</p>
         </div>
         <span className="data-save-status" aria-live="polite">
-          {!ready ? "Loading schema…" : saved ? "Saved in this browser" : "Could not save changes"}
+          {!ready ? t("loadingSchema") : saved ? t("savedInBrowser") : t("saveFailed")}
         </span>
       </header>
 
       <div className="data-model-workspace">
-        <aside className="data-objects-panel" aria-label="Data objects">
+        <aside className="data-objects-panel" aria-label={t("objects")}>
           <div className="data-section-heading">
-            <div><span className="eyebrow">SCHEMA</span><h2>Objects <span>{model.objects.length}</span></h2></div>
+          <div><span className="eyebrow">{t("schema")}</span><h2>{t("objects")} <span>{model.objects.length}</span></h2></div>
           </div>
           {model.objects.length > 0 ? (
             <div className="data-object-list">
@@ -180,38 +184,38 @@ export function DataModelingWorkspace({ appId }: { appId: string }) {
                   type="button"
                 >
                   <span className="data-object-icon">▤</span>
-                  <span className="data-object-name">{object.name}<small>{object.fields.length} {object.fields.length === 1 ? "field" : "fields"}</small></span>
+                  <span className="data-object-name">{object.name}<small>{object.fields.length} {object.fields.length === 1 ? t("field") : t("fieldsPlural")}</small></span>
                   <span aria-hidden="true">›</span>
                 </button>
               ))}
             </div>
           ) : (
-            <p className="data-empty-objects">Your objects will appear here.</p>
+            <p className="data-empty-objects">{t("emptyObjects")}</p>
           )}
           <form className="data-object-form" onSubmit={createObject}>
-            <label className="data-form-label" htmlFor="new-object-name">Create an object</label>
+            <label className="data-form-label" htmlFor="new-object-name">{t("createObject")}</label>
             <div className="data-object-input-row">
               <input
                 id="new-object-name"
                 maxLength={80}
                 onChange={(event) => setNewObjectName(event.target.value)}
-                placeholder="e.g. Customer"
+                placeholder={t("exampleCustomer")}
                 required
                 value={newObjectName}
               />
-              <button aria-label="Add object" className="data-add-button" type="submit">+</button>
+              <button aria-label={t("addObject")} className="data-add-button" type="submit">+</button>
             </div>
             {objectError && <p className="data-form-error" role="alert">{objectError}</p>}
           </form>
-          <p className="data-local-note">Schema drafts are saved in this browser until a backend schema API is connected.</p>
+          <p className="data-local-note">{t("schemaLocalNote")}</p>
         </aside>
 
-        <section className="data-fields-panel" aria-label="Object fields">
+        <section className="data-fields-panel" aria-label={t("fields")}>
           {selectedObject ? (
             <>
               <div className="data-object-heading">
                 <div>
-                  <div className="eyebrow">OBJECT</div>
+                  <div className="eyebrow">{t("object")}</div>
                   <form className="data-object-rename" onSubmit={saveObjectName}>
                     <input
                       aria-label="Object name"
@@ -220,18 +224,18 @@ export function DataModelingWorkspace({ appId }: { appId: string }) {
                       required
                       value={nameDraft}
                     />
-                    <button className="button button-small button-secondary" type="submit">Rename</button>
+                    <button className="button button-small button-secondary" type="submit">{t("rename")}</button>
                   </form>
                   {nameError && <p className="data-form-error" role="alert">{nameError}</p>}
                 </div>
-                <button className="data-delete-object" onClick={deleteObject} type="button">Delete object</button>
+                <button className="data-delete-object" onClick={deleteObject} type="button">{t("deleteObject")}</button>
               </div>
               {objectDeleteError && <p className="data-form-error" role="alert">{objectDeleteError}</p>}
 
               <div className="data-fields-heading">
-                <div><h2>Fields</h2><p>Describe the information stored on each record.</p></div>
+                <div><h2>{t("fields")}</h2><p>{t("describeFields")}</p></div>
                 {!addingField && !editingField && (
-                  <button className="button button-small" onClick={() => setAddingField(true)} type="button">+ Add field</button>
+                  <button className="button button-small" onClick={() => setAddingField(true)} type="button">+ {t("addField")}</button>
                 )}
               </div>
 
@@ -241,20 +245,20 @@ export function DataModelingWorkspace({ appId }: { appId: string }) {
               {selectedObject.fields.length > 0 ? (
                 <div className="data-table-wrap">
                   <table className="data-fields-table">
-                    <thead><tr><th scope="col">Field name</th><th scope="col">Type</th><th scope="col">Constraint</th><th scope="col"><span className="visually-hidden">Actions</span></th></tr></thead>
+                    <thead><tr><th scope="col">{t("fieldName")}</th><th scope="col">{t("type")}</th><th scope="col">{t("constraint")}</th><th scope="col"><span className="visually-hidden">{t("actions")}</span></th></tr></thead>
                     <tbody>
                       {selectedObject.fields.map((field) => (
                         <tr key={field.id}>
                           <td><strong>{field.name}</strong></td>
                           <td><span className="data-type-badge">
                             {field.type === "relation"
-                              ? `→ ${model.objects.find((object) => object.id === field.relatedObjectId)?.name ?? "Missing object"}`
-                              : fieldTypes.find((item) => item.value === field.type)?.label}
+                              ? `→ ${model.objects.find((object) => object.id === field.relatedObjectId)?.name ?? t("missingObject")}`
+                              : t(fieldTypes.find((item) => item.value === field.type)?.labelKey ?? "textType")}
                           </span></td>
-                          <td>{field.required ? <span className="data-required-badge">Required</span> : <span className="data-optional-badge">Optional</span>}</td>
+                          <td>{field.required ? <span className="data-required-badge">{t("required")}</span> : <span className="data-optional-badge">{t("optional")}</span>}</td>
                           <td className="data-row-actions">
-                            <button aria-label={`Edit ${field.name}`} onClick={() => { setAddingField(false); setEditingField(field); }} type="button">Edit</button>
-                            <button aria-label={`Delete ${field.name}`} onClick={() => removeField(selectedObject.id, field.id)} type="button">Delete</button>
+                            <button aria-label={`${t("edit")} ${field.name}`} onClick={() => { setAddingField(false); setEditingField(field); }} type="button">{t("edit")}</button>
+                            <button aria-label={`${t("delete")} ${field.name}`} onClick={() => removeField(selectedObject.id, field.id)} type="button">{t("delete")}</button>
                           </td>
                         </tr>
                       ))}
@@ -264,17 +268,17 @@ export function DataModelingWorkspace({ appId }: { appId: string }) {
               ) : !addingField && !editingField ? (
                 <div className="data-empty-fields">
                   <span aria-hidden="true">＋</span>
-                  <h3>No fields yet</h3>
-                  <p>Add fields to describe the data in a {selectedObject.name} record.</p>
-                  <button className="button button-small button-secondary" onClick={() => setAddingField(true)} type="button">Add your first field</button>
+                  <h3>{t("noFields")}</h3>
+                  <p>{t("addFieldsPrompt")}</p>
+                  <button className="button button-small button-secondary" onClick={() => setAddingField(true)} type="button">{t("addFirstField")}</button>
                 </div>
               ) : null}
             </>
           ) : (
             <div className="data-empty-schema">
               <span aria-hidden="true">▤</span>
-              <h2>Start with your first object</h2>
-              <p>Objects represent the things your app stores, such as customers, orders, or products.</p>
+              <h2>{t("startWithObject")}</h2>
+              <p>{t("objectDefinition")}</p>
             </div>
           )}
         </section>

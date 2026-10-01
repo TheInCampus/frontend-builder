@@ -8,8 +8,10 @@ import { PreviewPanel } from "@/features/builder/components/PreviewPanel";
 import { PropertyInspector } from "@/features/builder/components/PropertyInspector";
 import { useBuilderState } from "@/features/builder/hooks/useBuilderState";
 import type { BuilderComponentType } from "@/features/builder/types";
+import { useLocale } from "@/i18n/LocaleProvider";
 
 export function BuilderShell({ appId }: { appId: string }) {
+  const { t } = useLocale();
   const { components, ready, addComponent, updateComponent, removeComponent } = useBuilderState(appId);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<"canvas" | "preview">("canvas");
@@ -31,22 +33,22 @@ export function BuilderShell({ appId }: { appId: string }) {
   return (
     <main className="builder-page">
       <div className="builder-topbar">
-        <div className="builder-breadcrumb"><Link href="/apps">My apps</Link><span>/</span><span>Untitled app</span><span className="breadcrumb-page">/ Home</span></div>
+        <div className="builder-breadcrumb"><Link href="/apps">{t("myApps")}</Link><span>/</span><span>{t("untitledApp")}</span><span className="breadcrumb-page">/ {t("home")}</span></div>
         <div className="builder-actions">
-          <span className="saved-status"><i /> {ready ? "All changes saved" : "Loading draft…"}</span>
-          <Link className="button button-small button-secondary" href={`/preview/${appId}`}>Preview ↗</Link>
-          <button className="button button-small" disabled type="button">Publish</button>
+          <span className="saved-status"><i /> {ready ? t("allChangesSaved") : t("loadingDraft")}</span>
+          <Link className="button button-small button-secondary" href={`/preview/${appId}`}>{t("preview")} ↗</Link>
+          <button className="button button-small" disabled type="button">{t("publish")}</button>
         </div>
       </div>
       <div className="builder-workspace">
         <ComponentPalette onAdd={handleAdd} />
-        <section aria-label="Page editor" className="builder-center">
+        <section aria-label={t("pageEditor")} className="builder-center">
           <div className="canvas-toolbar">
-            <div className="view-switch" role="tablist" aria-label="Editor view">
-              <button aria-selected={activeView === "canvas"} className={activeView === "canvas" ? "active" : ""} onClick={() => setActiveView("canvas")} role="tab" type="button">▦ Canvas</button>
-              <button aria-selected={activeView === "preview"} className={activeView === "preview" ? "active" : ""} onClick={() => setActiveView("preview")} role="tab" type="button">◉ Preview</button>
+            <div className="view-switch" role="tablist" aria-label={t("editorView")}>
+              <button aria-selected={activeView === "canvas"} className={activeView === "canvas" ? "active" : ""} onClick={() => setActiveView("canvas")} role="tab" type="button">▦ {t("canvas")}</button>
+              <button aria-selected={activeView === "preview"} className={activeView === "preview" ? "active" : ""} onClick={() => setActiveView("preview")} role="tab" type="button">◉ {t("preview")}</button>
             </div>
-            <span className="canvas-toolbar-note">⌘ S <span>·</span> Autosaved</span>
+            <span className="canvas-toolbar-note">⌘ S <span>·</span> {t("autosaved")}</span>
           </div>
           {activeView === "canvas"
             ? <Canvas components={components} onDropComponent={handleAdd} onSelect={setSelectedId} selectedId={selectedId} />

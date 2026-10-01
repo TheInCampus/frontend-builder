@@ -1,19 +1,24 @@
+"use client";
+
 import Link from "next/link";
+import { SignOutButton } from "@/features/auth/components/SignOutButton";
+import { useLocale } from "@/i18n/LocaleProvider";
 
 export default function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { t } = useLocale();
   return (
     <div className="dashboard-shell">
       <aside className="dashboard-sidebar">
-        <div className="sidebar-label">WORKSPACE</div>
-        <Link className="sidebar-link active" href="/apps"><span>▦</span> All apps</Link>
-        <div className="sidebar-label sidebar-label-spaced">YOUR SPACE</div>
-        <Link className="sidebar-link" href="/apps/demo"><span>◈</span> Untitled app</Link>
-        <Link className="sidebar-link" href="/apps/demo/data"><span>▤</span> Data model</Link>
-        <div className="sidebar-bottom">A simpler way to build.</div>
+        <div className="sidebar-label">{t("workspace")}</div>
+        <Link className="sidebar-link active" href="/apps"><span>▦</span> {t("allApps")}</Link>
+        <div className="sidebar-label sidebar-label-spaced">{t("yourSpace")}</div>
+        <Link className="sidebar-link" href="/apps/demo"><span>◈</span> {t("untitledApp")}</Link>
+        <Link className="sidebar-link" href="/apps/demo/data"><span>▤</span> {t("dataModel")}</Link>
+        <div className="sidebar-bottom">{t("dashboardMotto")}<SignOutButton /></div>
       </aside>
       <main className="dashboard-main">{children}</main>
     </div>

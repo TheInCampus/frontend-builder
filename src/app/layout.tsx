@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { cookies } from "next/headers";
+import { LocaleProvider } from "@/i18n/LocaleProvider";
+import { isLocale } from "@/i18n/messages";
+import { SiteHeader } from "@/components/SiteHeader";
 import "@/styles/globals.css";
 
 export const metadata: Metadata = {
@@ -10,27 +13,21 @@ export const metadata: Metadata = {
   description: "Design and preview applications with a visual builder.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const localeCookie = (await cookies()).get("canvas_locale")?.value;
+  const locale = isLocale(localeCookie) ? localeCookie : "en";
+
   return (
-    <html lang="en">
+    <html lang={locale}>
       <body>
-        <header className="topbar">
-          <Link className="brand" href="/">
-            <span className="brand-mark">C</span>
-            Canvas
-          </Link>
-          <nav aria-label="Main navigation" className="topbar-nav">
-            <Link href="/apps">My apps</Link>
-            <Link className="button button-small" href="/login">
-              Sign in
-            </Link>
-          </nav>
-        </header>
-        {children}
+        <LocaleProvider initialLocale={locale}>
+          <SiteHeader />
+          {children}
+        </LocaleProvider>
       </body>
     </html>
   );
