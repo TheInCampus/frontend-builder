@@ -173,6 +173,36 @@ function validateResource(body, existing) {
   return { ...existing, ...body, id: existing?.id ?? randomBytes(16).toString("hex"), name };
 }
 
+function validateRecordData(input, object, store, appId) {
+  if (typeof input !== "object" || input === null || Array.isArray(input)) {
+    throw Object.assign(new Error("Record data must be a JSON object."), { status: 400 });
+  }
+  const fields = new Map(object.fields.map((field) => [field.name, field]));
+  for (const key of Object.keys(input)) {
+    if (!fields.has(key)) {
+      throw Object.assign(new Error(`Unknown field: ${key}.`), { status: 400 });
+    }
+  }
+  const data = {};
+  for (const field of object.fields) {
+    const value = input[field.name];
+    if (value === undefined || value === null || value === "") {
+      if (field.required) throw Object.assign(new Error(`${field.name} is required.`), { status: 400 });
+      continue;
+    }
+    const valid = field.type === "text" ? typeof value === "string" :
+      field.type === "number" ? typeof value === "number" && Number.isFinite(value) :
+      field.type === "boolean" ? typeof value === "boolean" :
+      field.type === "date" ? typeof value === "string" && !Number.isNaN(Date.parse(value)) :
+      field.type === "relation" ? typeof value === "string" && store.records.some((record) =>
+        record.id === value && record.appId === appId && record.objectId === field.relatedObjectId) :
+      false;
+    if (!valid) throw Object.assign(new Error(`${field.name} has an invalid value.`), { status: 400 });
+    data[field.name] = value;
+  }
+  return data;
+}
+
 async function handlePlatform(request, response, url, store) {
   const user = currentUser(request, store);
   if (!user) return send(response, 401, { message: "Authentication is required." });
@@ -198,6 +228,33 @@ async function handlePlatform(request, response, url, store) {
   const app = ownedApp(store, user, appId);
   const resourceName = segments[2];
   const resourceMap = { pages: store.pages, navigations: store.navigations, forms: store.forms };
+
+  if (resourceName === "objects" && segments[4] === "records" && segments.length === 5) {
+    const objectId = decodeURIComponent(segments[3] ?? "");
+    if (!isSafeSegment(objectId)) return send(response, 400, { message: "Invalid object identifier." });
+    const model = store.basemodels[appId] ?? { objects: [] };
+    const object = model.objects.find((candidate) => candidate.id === objectId);
+    if (!object) return send(response, 404, { message: "Basemodel object not found." });
+    store.records ??= [];
+    if (request.method === "GET") {
+      const records = store.records.filter((record) => record.appId === app.id && record.objectId === objectId);
+      return send(response, 200, { records });
+    }
+    if (request.method === "POST") {
+      const body = await readBody(request);
+      const record = {
+        id: randomBytes(16).toString("hex"),
+        appId: app.id,
+        objectId,
+        data: validateRecordData(body.data, object, store, app.id),
+        createdAt: new Date().toISOString(),
+      };
+      store.records.push(record);
+      await writeStore(store);
+      return send(response, 201, { record });
+    }
+    return send(response, 405, { message: "Method not allowed." }, { Allow: "GET, POST" });
+  }
 
   if (resourceName === "basemodel") {
     if (request.method === "GET") return send(response, 200, { model: store.basemodels[appId] ?? { version: 1, objects: [] } });
