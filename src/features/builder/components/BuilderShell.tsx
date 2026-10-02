@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { DndContext, KeyboardSensor, PointerSensor, type DragEndEvent, useSensor, useSensors } from "@dnd-kit/core";
+import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { Canvas } from "@/features/builder/components/Canvas";
 import { ComponentPalette } from "@/features/builder/components/ComponentPalette";
 import { PreviewPanel } from "@/features/builder/components/PreviewPanel";
@@ -12,12 +14,16 @@ import { useLocale } from "@/i18n/LocaleProvider";
 
 export function BuilderShell({ appId }: { appId: string }) {
   const { t } = useLocale();
-  const { components, ready, addComponent, updateComponent, removeComponent } = useBuilderState(appId);
+  const { components, ready, addComponent, updateComponent, removeComponent, reorderComponents } = useBuilderState(appId);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<"canvas" | "preview">("canvas");
   const selectedComponent = useMemo(
     () => components.find((component) => component.id === selectedId) ?? null,
     [components, selectedId],
+  );
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
   function handleAdd(type: BuilderComponentType) {
@@ -30,7 +36,19 @@ export function BuilderShell({ appId }: { appId: string }) {
     setSelectedId(null);
   }
 
+  function handleDragEnd(event: DragEndEvent) {
+    const kind = event.active.data.current?.kind;
+    const targetId = event.over?.id;
+    if (kind === "palette-component" && targetId === "canvas") {
+      const type = event.active.data.current?.componentType;
+      if (type === "heading" || type === "text" || type === "button" || type === "card") handleAdd(type);
+    } else if (kind === "canvas-component" && targetId) {
+      reorderComponents(appId, String(event.active.id), String(targetId));
+    }
+  }
+
   return (
+    <DndContext onDragEnd={handleDragEnd} sensors={sensors}>
     <main className="builder-page">
       <div className="builder-topbar">
         <div className="builder-breadcrumb"><Link href="/apps">{t("myApps")}</Link><span>/</span><span>{t("untitledApp")}</span><span className="breadcrumb-page">/ {t("home")}</span></div>
@@ -51,11 +69,12 @@ export function BuilderShell({ appId }: { appId: string }) {
             <span className="canvas-toolbar-note">⌘ S <span>·</span> {t("autosaved")}</span>
           </div>
           {activeView === "canvas"
-            ? <Canvas components={components} onDropComponent={handleAdd} onSelect={setSelectedId} selectedId={selectedId} />
+            ? <Canvas components={components} onSelect={setSelectedId} selectedId={selectedId} />
             : <PreviewPanel components={components} />}
         </section>
         <PropertyInspector component={selectedComponent} onDelete={handleDelete} onUpdate={(updates) => selectedId && updateComponent(selectedId, updates)} />
       </div>
     </main>
+    </DndContext>
   );
 }

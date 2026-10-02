@@ -1,25 +1,62 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { loadDataModel, saveDataModel } from "@/features/data-modeling/serialization/storage";
+import { useEffect, useRef, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/api/client";
+import { isDataModel, loadDataModel, saveDataModel } from "@/features/data-modeling/serialization/storage";
 import type { DataField, DataFieldType, DataModel, DataObject } from "@/features/data-modeling/types";
 
 const emptyModel: DataModel = { version: 1, objects: [] };
 
 export function useDataModel(appId: string) {
-  const [model, setModel] = useState<DataModel>(emptyModel);
-  const [ready, setReady] = useState(false);
+  const queryClient = useQueryClient();
+  const queryKey = ["basemodel", appId];
+  const saveQueue = useRef<Promise<void>>(Promise.resolve());
   const [saved, setSaved] = useState(true);
+  const query = useQuery({
+    queryKey,
+    queryFn: async () => {
+      const localModel = loadDataModel(appId);
+      try {
+        const result = await apiRequest<{ model: unknown }>(`metaplatform/apps/${encodeURIComponent(appId)}/basemodel`);
+        if (!isDataModel(result.model)) throw new Error("Invalid model returned by the API.");
+        if (result.model.objects.length === 0 && localModel?.objects.length) return localModel;
+        return result.model;
+      } catch {
+        return localModel ?? emptyModel;
+      }
+    },
+  });
+  const persistModel = useMutation({
+    mutationFn: (model: DataModel) => apiRequest<{ model: DataModel }>(
+      `metaplatform/apps/${encodeURIComponent(appId)}/basemodel`,
+      { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ model }) },
+    ),
+  });
+  const saveModelToApi = persistModel.mutateAsync;
+  const model = query.data ?? emptyModel;
+  const ready = query.isSuccess;
 
   useEffect(() => {
-    setReady(false);
-    setModel(loadDataModel(appId) ?? emptyModel);
-    setReady(true);
-  }, [appId]);
+    if (!ready) return;
+    const localSaved = saveDataModel(appId, model);
+    setSaved(localSaved);
+    if (!localSaved) return;
+    const timeout = window.setTimeout(() => {
+      saveQueue.current = saveQueue.current.catch(() => undefined).then(async () => {
+        try {
+          await saveModelToApi(model);
+        } catch {
+          // The browser draft remains available when the development API is offline or unauthenticated.
+        }
+      });
+    }, 350);
+    return () => window.clearTimeout(timeout);
+  }, [appId, model, ready, saveModelToApi]);
 
-  useEffect(() => {
-    if (ready) setSaved(saveDataModel(appId, model));
-  }, [appId, model, ready]);
+  function updateModel(update: (current: DataModel) => DataModel) {
+    queryClient.setQueryData<DataModel>(queryKey, (current) => update(current ?? emptyModel));
+  }
 
   function addObject(name: string): DataObject | null {
     const trimmedName = name.trim();
@@ -27,7 +64,7 @@ export function useDataModel(appId: string) {
       return null;
     }
     const object = { id: crypto.randomUUID(), name: trimmedName, fields: [] };
-    setModel((current) => ({ ...current, objects: [...current.objects, object] }));
+    updateModel((current) => ({ ...current, objects: [...current.objects, object] }));
     return object;
   }
 
@@ -37,7 +74,7 @@ export function useDataModel(appId: string) {
       object.id !== id && object.name.toLowerCase() === trimmedName.toLowerCase()
     )) return false;
 
-    setModel((current) => ({
+    updateModel((current) => ({
       ...current,
       objects: current.objects.map((object) => object.id === id ? { ...object, name: trimmedName } : object),
     }));
@@ -51,7 +88,7 @@ export function useDataModel(appId: string) {
       )
     );
     if (isReferenced) return false;
-    setModel((current) => ({ ...current, objects: current.objects.filter((object) => object.id !== id) }));
+    updateModel((current) => ({ ...current, objects: current.objects.filter((object) => object.id !== id) }));
     return true;
   }
 
@@ -78,7 +115,7 @@ export function useDataModel(appId: string) {
       required,
       ...(type === "relation" ? { relatedObjectId } : {}),
     };
-    setModel((current) => ({
+    updateModel((current) => ({
       ...current,
       objects: current.objects.map((item) => {
         if (item.id !== objectId) return item;
@@ -92,7 +129,7 @@ export function useDataModel(appId: string) {
   }
 
   function removeField(objectId: string, fieldId: string) {
-    setModel((current) => ({
+    updateModel((current) => ({
       ...current,
       objects: current.objects.map((object) => object.id === objectId
         ? { ...object, fields: object.fields.filter((field) => field.id !== fieldId) }

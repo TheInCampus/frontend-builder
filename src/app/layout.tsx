@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { LocaleProvider } from "@/i18n/LocaleProvider";
 import { isLocale } from "@/i18n/messages";
+import { AppProviders } from "@/components/AppProviders";
 import { SiteHeader } from "@/components/SiteHeader";
 import "@/styles/globals.css";
 
@@ -25,8 +26,10 @@ export default async function RootLayout({
     <html lang={locale}>
       <body>
         <LocaleProvider initialLocale={locale}>
-          <SiteHeader />
-          {children}
+          <AppProviders>
+            <SiteHeader />
+            {children}
+          </AppProviders>
         </LocaleProvider>
       </body>
     </html>

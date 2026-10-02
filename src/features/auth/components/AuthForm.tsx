@@ -2,12 +2,15 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 import { submitAuthAction } from "@/features/auth/api";
 import type { ForgetPasswordRequest, SignInRequest, SignUpRequest } from "@/features/auth/types";
 import { useLocale } from "@/i18n/LocaleProvider";
 
 type AuthFormMode = "signin" | "signup" | "forget";
+type AuthFormValues = { name?: string; email: string; password?: string };
 
 export function AuthForm({
   mode,
@@ -18,37 +21,47 @@ export function AuthForm({
 }) {
   const { t } = useLocale();
   const router = useRouter();
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState("");
   const [complete, setComplete] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<AuthFormValues>();
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (pending) return;
-    setError("");
-    const formElement = event.currentTarget;
-    const form = new FormData(formElement);
-    const email = String(form.get("email") ?? "").trim();
-    const name = String(form.get("name") ?? "").trim();
-    const password = String(form.get("password") ?? "");
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setError(t("invalidEmail"));
-      return;
+  const schema = z.object({
+    name: z.string().optional(),
+    email: z.string().trim().email(),
+    password: z.string().optional(),
+  }).superRefine((values, context) => {
+    if (mode === "signup" && !values.name?.trim()) {
+      context.addIssue({ code: "custom", path: ["name"], message: "nameRequired" });
     }
-    if (mode === "signup" && !name) {
-      setError(t("nameRequired"));
-      return;
+    if (mode === "signup" && (values.password?.length ?? 0) < 8) {
+      context.addIssue({ code: "custom", path: ["password"], message: "passwordTooShort" });
     }
-    if (mode !== "forget" && mode === "signup" && password.length < 8) {
-      setError(t("passwordTooShort"));
-      return;
+    if (mode === "signin" && !values.password) {
+      context.addIssue({ code: "custom", path: ["password"], message: "passwordRequired" });
     }
-    if (mode === "signin" && !password) {
-      setError(t("passwordRequired"));
-      return;
-    }
-    setPending(true);
+  });
 
+  async function submit(values: AuthFormValues) {
+    const result = schema.safeParse(values);
+    if (!result.success) {
+      for (const issue of result.error.issues) {
+        const field = issue.path[0];
+        if (field === "email" || field === "name" || field === "password") {
+          const message = issue.message === "nameRequired" ? t("nameRequired")
+            : issue.message === "passwordTooShort" ? t("passwordTooShort")
+              : issue.message === "passwordRequired" ? t("passwordRequired")
+                : t("invalidEmail");
+          setError(field, { type: "validate", message });
+        }
+      }
+      return;
+    }
+
+    const { email, name = "", password = "" } = result.data;
     try {
       if (mode === "signin") {
         await submitAuthAction<SignInRequest>("signin", {
@@ -70,9 +83,7 @@ export function AuthForm({
         setComplete(true);
       }
     } catch {
-      setError(t("authError"));
-    } finally {
-      setPending(false);
+      setError("root.server", { type: "server", message: t("authError") });
     }
   }
 
@@ -91,25 +102,27 @@ export function AuthForm({
             <p className="auth-footer"><Link href="/login">{t("backToSignIn")}</Link></p>
           </>
         ) : (
-          <form className="auth-form" noValidate onSubmit={submit}>
+          <form className="auth-form" noValidate onSubmit={handleSubmit(submit)}>
             {mode === "signup" && (
-              <label>{t("name")}<input autoComplete="name" maxLength={120} name="name" required /></label>
+              <label>{t("name")}<input autoComplete="name" maxLength={120} {...register("name")} /></label>
             )}
-            <label>{t("email")}<input autoComplete="email" maxLength={254} name="email" required type="email" /></label>
+            <label>{t("email")}<input autoComplete="email" maxLength={254} type="email" {...register("email")} /></label>
             {mode !== "forget" && (
               <label>
                 {t("password")}
                 <input
                   autoComplete={mode === "signin" ? "current-password" : "new-password"}
-                  name="password"
-                  required
                   type="password"
+                  {...register("password")}
                 />
               </label>
             )}
-            {error && <p className="auth-error" role="alert">{error}</p>}
-            <button className="button button-full" disabled={pending} type="submit">
-              {pending
+            {errors.email && <p className="auth-error" role="alert">{errors.email.message}</p>}
+            {errors.name && <p className="auth-error" role="alert">{errors.name.message}</p>}
+            {errors.password && <p className="auth-error" role="alert">{errors.password.message}</p>}
+            {errors.root?.server && <p className="auth-error" role="alert">{errors.root.server.message}</p>}
+            <button className="button button-full" disabled={isSubmitting} type="submit">
+              {isSubmitting
                 ? mode === "signin" ? t("signingIn") : mode === "signup" ? t("creatingAccount") : t("sendingReset")
                 : mode === "signin" ? t("continue") : mode === "signup" ? t("signUp") : t("sendReset")}
             </button>

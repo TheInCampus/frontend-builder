@@ -12,7 +12,7 @@ export async function POST(request: Request, { params }: RouteContext) {
     return Response.json({ message: "Unsupported authentication action." }, { status: 404 });
   }
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
+  const apiUrl = (process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL)?.replace(/\/$/, "");
   if (!apiUrl) {
     return Response.json({ message: "Authentication service is not configured." }, { status: 503 });
   }

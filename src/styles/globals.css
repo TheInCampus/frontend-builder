@@ -120,6 +120,8 @@ button { color: inherit; }
 .page-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 20px; }
 .page-heading h1, .page-content > h1 { margin: 9px 0 5px; font: 700 29px var(--font-display); letter-spacing: -1.4px; }
 .page-heading p, .page-lead { margin: 0; color: var(--muted); font-size: 13px; }
+.apps-create-form { display: flex; flex-wrap: wrap; gap: 8px; }
+.apps-create-form input { min-width: 180px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 7px; background: white; font: inherit; font-size: 13px; }
 .app-card { display: flex; align-items: center; gap: 16px; margin-top: 32px; padding: 19px; border: 1px solid var(--line); border-radius: 9px; transition: border-color .2s, box-shadow .2s; }
 .app-card:hover { border-color: #cbd7c9; box-shadow: 0 8px 24px #314b2c0b; }
 .app-card-icon { width: 43px; height: 43px; display: grid; place-items: center; border-radius: 9px; color: #58775a; background: #edf3eb; font-size: 19px; }

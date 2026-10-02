@@ -8,7 +8,7 @@ function isDataFieldType(value: unknown): value is DataFieldType {
   return value === "text" || value === "number" || value === "boolean" || value === "date" || value === "relation";
 }
 
-function isDataModel(value: unknown): value is DataModel {
+export function isDataModel(value: unknown): value is DataModel {
   if (typeof value !== "object" || value === null || !("version" in value) || !("objects" in value)) {
     return false;
   }
