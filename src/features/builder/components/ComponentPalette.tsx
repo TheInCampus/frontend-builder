@@ -1,8 +1,8 @@
 "use client";
 
 import { useDraggable } from "@dnd-kit/core";
-import { componentDefinitions } from "@/features/builder/components-registry";
-import type { BuilderComponentType } from "@/features/builder/types";
+import { componentDefinitions } from "@/features/builder/components/registry";
+import type { BuilderComponentType } from "@/types/json-schema";
 import { useLocale } from "@/i18n/LocaleProvider";
 
 export function ComponentPalette({ onAdd }: { onAdd: (type: BuilderComponentType) => void }) {

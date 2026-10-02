@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { useDataModel } from "@/features/data-modeling/hooks/useDataModel";
-import type { DataField, DataFieldType, DataObject } from "@/features/data-modeling/types";
+import { useDataModel } from "@/features/schema-designer/hooks/useDataModel";
+import type { DataField, DataFieldType, DataObject } from "@/types/metadata";
 import { useLocale } from "@/i18n/LocaleProvider";
-import type { MessageKey } from "@/i18n/messages";
+import type { MessageKey } from "@/i18n/config";
 
 const fieldTypes: { value: DataFieldType; labelKey: MessageKey }[] = [
   { value: "text", labelKey: "textType" },

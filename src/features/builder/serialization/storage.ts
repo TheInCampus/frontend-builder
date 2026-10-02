@@ -1,4 +1,4 @@
-import type { BuilderPage } from "@/features/builder/types";
+import type { BuilderPage } from "@/types/json-schema";
 
 function storageKey(appId: string) {
   return `canvas-builder:${encodeURIComponent(appId)}`;

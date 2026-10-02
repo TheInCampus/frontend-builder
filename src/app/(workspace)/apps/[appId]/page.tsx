@@ -1,4 +1,4 @@
-import { AppOverview } from "@/features/apps/components/AppOverview";
+import { AppOverview } from "./_components/AppOverview";
 
 export default async function AppOverviewPage({
   params,

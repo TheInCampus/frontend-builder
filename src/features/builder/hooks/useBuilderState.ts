@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { loadPage, savePage } from "@/features/builder/serialization/storage";
-import type { BuilderComponent, BuilderComponentType } from "@/features/builder/types";
+import type { BuilderComponent, BuilderComponentType } from "@/types/json-schema";
 import { useBuilderStore } from "@/features/builder/state/store";
 
 export function useBuilderState(appId: string) {

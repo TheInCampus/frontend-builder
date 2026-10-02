@@ -1,6 +1,6 @@
 "use client";
 
-import { AppsWorkspace } from "@/features/apps/components/AppsWorkspace";
+import { AppsWorkspace } from "./_components/AppsWorkspace";
 
 export default function AppsPage() {
   return <AppsWorkspace />;

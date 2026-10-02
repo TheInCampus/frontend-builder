@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SignOutButton } from "@/features/auth/components/SignOutButton";
 import { useLocale } from "@/i18n/LocaleProvider";
-import type { Locale } from "@/i18n/messages";
+import type { Locale } from "@/i18n/config";
 
 export function SiteHeader() {
   const { locale, setLocale, t } = useLocale();

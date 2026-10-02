@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { translate, type Locale, type MessageKey } from "@/i18n/messages";
+import { translate, type Locale, type MessageKey } from "@/i18n/config";
 
 type LocaleContextValue = {
   locale: Locale;

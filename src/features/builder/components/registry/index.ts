@@ -1,4 +1,4 @@
-import type { BuilderComponentType } from "@/features/builder/types";
+import type { BuilderComponentType } from "@/types/json-schema";
 
 export const componentDefinitions: {
   type: BuilderComponentType;

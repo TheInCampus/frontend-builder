@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { componentDefinitions } from "@/features/builder/components-registry";
-import type { BuilderComponent, BuilderComponentType } from "@/features/builder/types";
+import { componentDefinitions } from "@/features/builder/components/registry";
+import type { BuilderComponent, BuilderComponentType } from "@/types/json-schema";
 
 type AppDraft = {
   components: BuilderComponent[];

@@ -1,4 +1,4 @@
-import type { DataFieldType, DataModel } from "@/features/data-modeling/types";
+import type { DataFieldType, DataModel } from "@/types/metadata";
 
 function storageKey(appId: string) {
   return `canvas-data-model:${encodeURIComponent(appId)}`;

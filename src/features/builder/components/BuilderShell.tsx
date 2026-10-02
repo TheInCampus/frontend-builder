@@ -9,7 +9,7 @@ import { ComponentPalette } from "@/features/builder/components/ComponentPalette
 import { PreviewPanel } from "@/features/builder/components/PreviewPanel";
 import { PropertyInspector } from "@/features/builder/components/PropertyInspector";
 import { useBuilderState } from "@/features/builder/hooks/useBuilderState";
-import type { BuilderComponentType } from "@/features/builder/types";
+import type { BuilderComponentType } from "@/types/json-schema";
 import { useLocale } from "@/i18n/LocaleProvider";
 
 export function BuilderShell({ appId }: { appId: string }) {

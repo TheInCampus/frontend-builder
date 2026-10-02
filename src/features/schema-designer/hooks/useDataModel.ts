@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/api/client";
-import { isDataModel, loadDataModel, saveDataModel } from "@/features/data-modeling/serialization/storage";
-import type { DataField, DataFieldType, DataModel, DataObject } from "@/features/data-modeling/types";
+import { isDataModel, loadDataModel, saveDataModel } from "@/features/schema-designer/serialization/storage";
+import type { DataField, DataFieldType, DataModel, DataObject } from "@/types/metadata";
 
 const emptyModel: DataModel = { version: 1, objects: [] };
 

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { LocaleProvider } from "@/i18n/LocaleProvider";
-import { isLocale } from "@/i18n/messages";
-import { AppProviders } from "@/components/AppProviders";
-import { SiteHeader } from "@/components/SiteHeader";
+import { isLocale } from "@/i18n/config";
+import { AppProviders } from "@/components/ui/AppProviders";
+import { SiteHeader } from "@/components/branding/SiteHeader";
 import "@/styles/globals.css";
 
 export const metadata: Metadata = {

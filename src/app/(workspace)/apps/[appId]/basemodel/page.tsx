@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DataModelingWorkspace } from "@/features/data-modeling/components/DataModelingWorkspace";
+import { DataModelingWorkspace } from "@/features/schema-designer/components/DataModelingWorkspace";
 
 export const metadata: Metadata = {
   title: "Data model",

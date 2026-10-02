@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { loadPage } from "@/features/builder/serialization/storage";
-import type { BuilderComponent } from "@/features/builder/types";
+import type { BuilderComponent } from "@/types/json-schema";
 import { PreviewPanel } from "./PreviewPanel";
 
 export function PreviewApp({ appId }: { appId: string }) {

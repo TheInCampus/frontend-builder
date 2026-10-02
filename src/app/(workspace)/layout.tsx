@@ -1,5 +1,5 @@
 import { WorkspaceShell } from "@/components/ui/WorkspaceShell";
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function AppWorkspaceLayout({ children }: { children: React.ReactNode }) {
   return <WorkspaceShell>{children}</WorkspaceShell>;
 }

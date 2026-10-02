@@ -1,6 +1,6 @@
 "use client";
 
-import type { BuilderComponent } from "@/features/builder/types";
+import type { BuilderComponent } from "@/types/json-schema";
 import { useLocale } from "@/i18n/LocaleProvider";
 
 export function PropertyInspector({
