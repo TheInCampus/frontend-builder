@@ -39,9 +39,13 @@ export function BuilderShell({ appId }: { appId: string }) {
   function handleDragEnd(event: DragEndEvent) {
     const kind = event.active.data.current?.kind;
     const targetId = event.over?.id;
-    if (kind === "palette-component" && targetId === "canvas") {
+    if (kind === "palette-component" && targetId) {
       const type = event.active.data.current?.componentType;
-      if (type === "heading" || type === "text" || type === "button" || type === "card") handleAdd(type);
+      const overKind = event.over?.data.current?.kind;
+      if (
+        (targetId === "canvas" || overKind === "canvas-component") &&
+        (type === "heading" || type === "text" || type === "button" || type === "card")
+      ) handleAdd(type);
     } else if (kind === "canvas-component" && targetId) {
       reorderComponents(appId, String(event.active.id), String(targetId));
     }

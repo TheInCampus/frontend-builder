@@ -20,8 +20,7 @@ export function useDataModel(appId: string) {
       try {
         const result = await apiRequest<{ model: unknown }>(`metaplatform/apps/${encodeURIComponent(appId)}/basemodel`);
         if (!isDataModel(result.model)) throw new Error("Invalid model returned by the API.");
-        if (result.model.objects.length === 0 && localModel?.objects.length) return localModel;
-        return result.model;
+        return localModel ?? result.model;
       } catch {
         return localModel ?? emptyModel;
       }

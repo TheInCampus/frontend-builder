@@ -393,3 +393,240 @@ Across the workspace, verify route navigation, app isolation, authentication/aut
 - The UI stack is Tailwind CSS v4 and DaisyUI v5 with the custom `canvas` theme. New UI should reuse that stack.
 
 This context describes the current implementation, not a commitment to preserve its data shape or localStorage approach for the production builder.
+
+---
+
+# Epic 2 — Runtime, Distribution, and Platform Readiness (Proposed)
+
+**Status:** Deferred planning backlog. These items are not part of the currently delivered authoring MVP. The numbering is for discussion and can be changed when stories are created as tracked issues.
+
+## 12. Epic goal and boundaries
+
+**Goal:** Let an authorized app owner take a validated app configuration from the builder and securely run it as an independently routable application, then choose a supported hosting or distribution path without exposing platform administration capabilities.
+
+**User outcome:** An app owner can preview and publish a versioned application whose pages, data, navigation, forms, language, and metadata agree with its saved configuration. Depending on later product decisions, the owner can host it on a platform URL or verified custom domain, export a supported artifact, or install an explicitly scoped desktop package.
+
+### Included
+
+- A versioned, validated runtime configuration contract and a runtime renderer separated by module boundary from the authoring UI.
+- Runtime route resolution, layouts/components, data access, generated forms, navigation, error/empty states, and server-rendered metadata.
+- Production persistence/API integration, app/version isolation, publication lifecycle, entitlement checks, and migration from browser drafts.
+- Expanded runtime localization, verified custom-domain routing, a constrained export workflow, and a desktop/offline feasibility implementation if that product direction is approved.
+- Security, accessibility, operational visibility, and automated verification needed for the above.
+
+### Excluded unless separately approved
+
+- Treating a browser-only export as source-code protection: downloaded JavaScript can be inspected, so obfuscation/minification cannot guarantee secrecy.
+- Automatically compiling arbitrary user-defined schemas into database DDL or exposing arbitrary REST/GraphQL resolvers.
+- Choosing a hosting vendor, cloud region, database, cache, desktop framework, billing provider, SMS provider, or payment provider before architecture, compliance, and cost review.
+- Promising air-gapped operation before offline persistence, synchronization, authentication, backup, and data-conflict behavior have been specified.
+- Using browser-controlled client claims as authorization. The backend remains authoritative for identity, tenant boundaries, and entitlements.
+
+## 13. Proposed stories
+
+### E2.1 — Agree and version the published application contract
+
+**User story:** As a platform engineer, I need one versioned, validated application document so the editor, API, runtime, preview, SEO resolver, and export process interpret saved applications consistently.
+
+**Description:** Define the supported page, component, route, navigation, Basemodel, form, localization, metadata, and publication shapes. The contract must distinguish editable drafts from immutable published versions, define stable identifiers and references, and include schema validation and explicit migration behavior. Keep unknown or unsupported fields from being executed as code.
+
+**Acceptance criteria**
+- Contract and supported version are documented and validated at API boundaries; invalid shape, unsupported version, duplicate identifiers, and broken references receive actionable errors.
+- Draft writes do not mutate an already published version; a publication records the exact contract version and content revision.
+- Migration is deterministic, tested against retained fixtures, and reports fields that cannot be migrated instead of silently discarding them.
+- The mock contract is identified as a test/development approximation; production contract decisions are approved with the Spring Boot API owners.
+
+**Dependencies:** Epic 0 resource schemas; Spring Boot API and persistence design.
+
+### E2.2 — Build the isolated, server-renderable application runtime
+
+**User story:** As a public visitor, I want an application route to render the app owner's published pages so that the application is usable without opening the editor.
+
+**Description:** Create a runtime module with an explicit dependency boundary from builder-only components. Resolve an app and route to a published configuration and render only an allowlisted set of runtime components. Support loading, not-found, unavailable, and invalid-configuration states; resolve navigation and page paths using stable page IDs and validated slugs.
+
+**Acceptance criteria**
+- A visitor can load the root route and supported nested page routes directly, refresh them, and navigate between published pages without relying on editor state.
+- Only published versions render publicly; draft preview is separately authorized and cannot accidentally become public.
+- Unsupported component types and broken references degrade to a safe visible error/placeholder and are observable, not dynamically imported or evaluated.
+- Server-rendered HTML and client hydration use the same versioned configuration and handle empty, missing, and unpublished apps consistently.
+- Runtime chunks do not import builder inspectors, authoring state stores, or editor-only controls; this is verified by a bundle/dependency check.
+
+**Dependencies:** E2.1, E2.12 publication/version-read APIs, production app lookup API.
+
+### E2.3 — Connect runtime data to production backend services
+
+**User story:** As an app owner, I want my published app to read data through authorized platform APIs so that runtime views show records without any browser-to-database access.
+
+**Description:** Agree which data services the backend exposes for published applications, what public/private record access means, and how app, user, and record scopes are enforced. Define safe query and filter capabilities from component bindings; do not generate database drivers or arbitrary query language in the frontend.
+
+**Acceptance criteria**
+- Every read/write API validates the authenticated identity or explicitly public access policy and verifies both `appId` and resource/record ownership on the backend.
+- Browser code calls only documented same-origin/API-gateway endpoints; database credentials and privileged service tokens never enter client bundles.
+- Runtime query shapes are allowlisted and bounded (fields, page size, sort/filter operators); invalid or excessive queries are rejected.
+- Loading, empty, permission-denied, expired-session, network, and server-error states are represented without exposing stack traces or sensitive records.
+- Integration tests prove cross-app and cross-tenant reads/writes are denied, including manipulated IDs and stale publication references.
+
+**Dependencies:** E2.1; production Spring Boot authentication, tenancy, and data API contracts.
+
+### E2.4 — Render schema-driven forms and process submissions
+
+**User story:** As an app owner, I want a published form to derive its fields and validation from the saved form and Basemodel so visitors can submit data that follows the app's schema.
+
+**Description:** Build runtime form controls from the approved field-definition registry, construct runtime validation from declarative constraints, and bind submission to an explicitly selected object/API. Keep React Hook Form and Zod as implementation tools, not as permission or trust boundaries; the backend validates submitted data again.
+
+**Acceptance criteria**
+- Supported field types, required rules, length/range constraints, and supported relation selectors render with accessible labels, descriptions, errors, keyboard operation, and localized messages.
+- A form with an unsupported field, deleted binding, invalid condition, or incompatible Basemodel version cannot submit and reports a recoverable configuration error.
+- Validation constraints are compiled only from validated declarative configuration; no `eval`, executable expression, or arbitrary schema code is accepted.
+- Submission uses a same-origin API path and server-side validation, applies app-level authorization/rate limits, and gives the visitor a clear success/failure state without leaking private API responses.
+- Unit and integration tests cover valid/invalid values, relations, conditional visibility, duplicate submission, timeout, and authorization denial.
+
+**Dependencies:** E2.1, E2.3, finalized Forms and Basemodel semantics, privacy/retention decisions.
+
+### E2.5 — Generate safe metadata and structured data for public pages
+
+**User story:** As an app owner, I want public pages to expose accurate page titles, descriptions, canonical URLs, and supported structured data so search engines can understand content I have chosen to publish.
+
+**Description:** Provide validated metadata templates and a server-side resolver based on public, explicitly exposed fields. Support static defaults and optional object-backed pages. Treat the README's job-portal/JobPosting example as illustrative only; structured data types and required fields need per-product validation and must never imply that indexing/ranking is guaranteed.
+
+**Acceptance criteria**
+- Metadata resolution is server-side for crawler-visible routes and respects the published version, canonical route, app visibility, locale, and no-index settings.
+- Template variables resolve only to allowlisted public fields with bounded output lengths; missing or invalid values fall back to safe defaults.
+- JSON-LD output is serialized safely (including `<`, `>`, `&`, and script-closing sequences); user values cannot inject executable markup.
+- Draft/private records are never exposed through metadata, JSON-LD, canonical URLs, or preview routes to anonymous visitors.
+- Tests cover missing fields, special characters, unknown tokens, unpublished/deleted records, no-index, localization, and representative schema validation.
+
+**Dependencies:** E2.1–E2.3; product-approved public-data policy and metadata rules.
+
+### E2.6 — Expand runtime localization and namespace loading
+
+**User story:** As an app owner or visitor, I want the platform UI and published app to use supported regional languages consistently so people can author and use apps in their preferred language.
+
+**Description:** Evolve the current English/Spanish UI resources toward the target English, Hindi, Marathi, Tamil, and Telugu set only after translation ownership and review are established. Separate platform UI strings from app-authored content and runtime namespaces; define locale negotiation, explicit selection, fallback, date/number formatting, and direction handling.
+
+**Acceptance criteria**
+- The initial approved locale list and translation source of truth are explicit; every required key has a reviewed translation or a deliberate English fallback.
+- Locale is selected consistently for server rendering and client hydration; switching it does not corrupt the current route or saved drafts.
+- Runtime-loaded namespaces are limited to the active feature/locale and are not used as a substitute for translating user-authored content.
+- Locale fallback and unsupported locale behavior are deterministic and tested; localized labels, validation, metadata, and date/number formatting are covered.
+- Right-to-left layout support is not claimed unless a right-to-left locale is approved and layout, keyboard, and visual QA are completed.
+
+**Dependencies:** Product locale approval, E2.2/E2.4 runtime surfaces, translation review process.
+
+### E2.7 — Add guest trial, account entitlements, and draft migration
+
+**User story:** As a prospective user, I want to try approved basic authoring without an account and retain my work if I sign up, while paid or restricted capabilities remain enforced securely.
+
+**Description:** Specify which features are available anonymously and which require an account or entitlement. Preserve only non-sensitive guest drafts in browser storage, bind them to a newly authenticated account after explicit confirmation, and resolve collisions with existing server drafts. Access decisions must be enforced by backend APIs as well as reflected in frontend navigation.
+
+**Acceptance criteria**
+- Guest access policy lists allowed actions, quotas, retention/expiry, and restricted capabilities; no tier is inferred from a client-side flag.
+- An unauthenticated visitor can create and edit an approved trial draft; restricted actions explain the requirement and preserve the draft.
+- Sign-up/sign-in offers a safe draft import/migration flow with a preview, duplicate handling, cancellation, and recovery if migration fails.
+- Backend endpoints reject forged guest/paid entitlement claims and verify ownership before attaching drafts to an account.
+- Logout/account-switch behavior does not expose another user's cached app data; sensitive tokens and passwords are never stored in localStorage.
+
+**Dependencies:** Product pricing/access decisions, production auth/entitlement APIs, E2.1 and draft migration rules.
+
+### E2.8 — Provide a constrained integrations framework
+
+**User story:** As an authorized app owner, I want to configure approved integrations such as messaging or payment providers without exposing provider credentials to visitors or the browser.
+
+**Description:** Treat the README's SMS/payment nodes as possible future integrations, not built-in requirements. Establish provider review, credential storage, consent, rate limits, webhook authenticity, regional/legal requirements, and sandbox-vs-production configuration before adding any provider adapter.
+
+**Acceptance criteria**
+- Only reviewed integrations are offered, with documented permissions, data passed, costs, regional availability, failure behavior, and sandbox controls.
+- Secrets are stored and used by backend services only; the browser and exported public runtime never receive provider credentials.
+- Payment or messaging side effects require explicit user actions/consent where applicable, backend validation, idempotency, abuse limits, and auditable outcomes.
+- Webhooks validate authenticity and replay protection; sensitive payloads are minimized and are not written into ordinary logs.
+- Integration availability and entitlements are checked server-side; disabled/unconfigured integrations fail safely and clearly.
+
+**Dependencies:** Security/legal/provider review, production backend, entitlement design, privacy and retention policy.
+
+### E2.9 — Support verified multi-tenant custom domains
+
+**User story:** As an app owner, I want a verified domain to serve my published app so visitors can use my brand's address.
+
+**Description:** Design provider-neutral domain verification, TLS certificate lifecycle, host-to-app resolution, tenant isolation, canonical URLs, and safe removal/transfer. DNS instructions and edge-routing implementation must follow the hosting provider selected after deployment/security review; a fixed AWS Mumbai region or Redis lookup is not an agreed requirement.
+
+**Acceptance criteria**
+- A domain is mapped only after a challenge proves control; duplicate, pending, expired, or already-claimed domains cannot route to an app.
+- Requests accept only validated hostnames and map them to an active, published app; spoofed forwarding headers and path traversal cannot select another tenant.
+- TLS issuance/renewal, verification status, DNS misconfiguration, disablement, and removal are observable and have documented recovery procedures.
+- Unknown hosts, unpublished apps, and removed mappings return safe responses; redirects/canonical metadata cannot enable host-header poisoning.
+- Integration tests demonstrate tenant isolation, verification, renewal failure, domain reassignment, and cache invalidation.
+
+**Dependencies:** Production deployment/edge provider choice, E2.2, domain/TLS operational ownership, security review.
+
+### E2.10 — Generate a constrained standalone web export
+
+**User story:** As an eligible app owner, I want a reproducible export for an approved deployment target so I can host a supported app outside the platform.
+
+**Description:** Define export output and supported capabilities before implementation. Build from an immutable published revision in an isolated job with pinned inputs and bounded resources. Clearly disclose features requiring platform services (auth, data APIs, integrations, custom domains). Minification and source-map suppression reduce accidental exposure but do not prevent inspection of browser-delivered code; never market obfuscation as a security or IP guarantee.
+
+**Acceptance criteria**
+- Export accepts only an authorized published revision, records source revision/toolchain, and produces a checksum/versioned artifact with documented deploy instructions.
+- Build jobs are isolated from the control plane, have no access to arbitrary host files/secrets, apply time/resource limits, and clean temporary artifacts.
+- Output includes only declared runtime assets/config and excludes authoring UI/admin routes; dependency and artifact checks verify the boundary.
+- Source maps and secrets are excluded according to policy; the UI explains that shipped client code remains inspectable.
+- Export is reproducible or documents known nondeterminism, and tests cover unsupported capabilities, build failures, artifact integrity, authorization, and deletion/retention.
+
+**Dependencies:** E2.1, E2.2, publication model, target deployment support, security and IP review.
+
+### E2.11 — Evaluate and, if approved, package a desktop/offline app
+
+**User story:** As an organization with approved local-only workflows, I want a supported desktop application that can operate under documented network and data constraints.
+
+**Description:** First produce a threat model and feasibility decision comparing a web wrapper (such as Electron or Tauri) with a native runtime, offline data store, update mechanism, and any local backend needs. A packaged web UI alone is not equivalent to air-gapped operation; server Java cannot be assumed to work offline without a separately supported local service and data lifecycle.
+
+**Acceptance criteria**
+- The product decision names supported operating systems, offline capabilities, data-at-rest encryption/key handling, backup/export, update/signing process, and support lifecycle—or explicitly defers the feature.
+- The package contains only the approved runtime, applies an explicit navigation/content-security policy, and does not ship platform administration credentials.
+- Offline and reconnect behavior defines local authentication, sync conflicts, duplicate submissions, data retention, and recovery; tests exercise network loss and device restart.
+- Packages are signed and verifiable, dependencies and update channels are reviewed, and telemetry/analytics behavior is documented for offline environments.
+- No “fully air-gapped” or “zero exposure” claim is made unless independently verified against the approved threat model.
+
+**Dependencies:** Product approval, security review, supported backend/offline architecture, OS distribution/signing decisions. This story may conclude with a documented no-go.
+
+### E2.12 — Publish, roll back, and operate application releases
+
+**User story:** As an app owner or operator, I want controlled publication and rollback so a bad configuration or runtime deployment can be recovered without losing the editable draft.
+
+**Description:** Add a publication workflow over validated immutable versions with a preview/review step, explicit confirmation, status visibility, rollback, and cache invalidation. Define operational ownership and observability for runtime/API errors, deployment failures, and public traffic without logging secrets or private record values.
+
+**Acceptance criteria**
+- Publish requires a valid, authorized draft and records actor, timestamp, version, and validation result on the server.
+- Draft editing after publish does not change the live version; rollback selects a prior valid immutable version and can be audited.
+- Preview and publication use consistent configuration contracts; cache invalidation makes publish/rollback behavior predictable.
+- Operators can diagnose request/build failures using correlation IDs and aggregate metrics without credentials, session tokens, or unnecessary personal data in logs.
+- Permission, failed publication, concurrent edit, rollback, cache, and recovery paths have automated coverage and an operational runbook.
+
+**Dependencies:** E2.1, E2.3, backend publication/version APIs, deployment and observability decisions.
+
+## 14. Proposed delivery order and cross-cutting acceptance
+
+This is a dependency order, not a commitment to dates:
+
+1. Resolve product/security decisions and backend contracts; complete E2.1 and production persistence/auth boundaries.
+2. Implement authorized production data APIs (E2.3), then publication/version APIs and rollback (E2.12).
+3. Deliver the server-renderable runtime against those published versions (E2.2), then runtime forms (E2.4) on top of the E2.3 data APIs.
+4. Add metadata/SEO and locale expansion (E2.5–E2.6) once public visibility and data-exposure rules are established.
+5. Decide guest/entitlement/integration scope (E2.7–E2.8) with product, privacy, and provider owners.
+6. Assess separate distribution paths independently: custom domains (E2.9), web export (E2.10), desktop/offline (E2.11). None is a prerequisite to claiming the core runtime is delivered.
+
+Every story must include automated tests for authorization and cross-app isolation where APIs are involved, keyboard/accessibility checks for user interactions, responsive/error/empty/loading states, localization fallback, and a threat-model review for externally reachable features. Production acceptance also requires API contract tests against Spring Boot; mock-server tests alone cannot prove production security or persistence.
+
+## 15. Blueprint-to-backlog traceability
+
+| Blueprint topic | Current status | Epic 2 destination / correction |
+| --- | --- | --- |
+| React 19, Next.js, TypeScript, Tailwind/DaisyUI, dnd-kit, Zustand, TanStack Query, RHF/Zod | Implemented in current frontend to varying feature scopes | Extend and verify per runtime story; these tools do not provide backend validation or authorization |
+| Basemodel, page canvas, browser drafts, auth/localization | Partial current authoring foundation | Epic 0 completes authoring contracts; E2.1, E2.3, E2.7 define production versions and migration |
+| Runtime app engine and catch-all routes | Not implemented | E2.1–E2.4 |
+| Automatic database schema/REST/GraphQL compilation | Not implemented; not assumed | Requires separate backend architecture/security decision; arbitrary code/queries are out of scope |
+| SEO, dynamic metadata and JSON-LD | Not implemented | E2.5; only validated public data may be exposed |
+| Guest tiers, advanced-feature gates, SMS/payment nodes | Not implemented | E2.7–E2.8; entitlement and side-effect checks are server-enforced |
+| Hindi, Marathi, Tamil, Telugu | Not implemented; current UI is English/Spanish | E2.6 after translation ownership and locale approval |
+| Custom domains/AWS/Redis | Not implemented; vendor/region/cache choices are open | E2.9; do not treat blueprint-specific infrastructure as selected |
+| Standalone export and proprietary-code isolation | Not implemented; client bundles remain inspectable | E2.10; no source-secrecy guarantee |
+| Electron/Tauri, GraalVM, local database, air-gapped package | Not implemented and not validated as a design | E2.11 begins with feasibility/security decision; may be rejected |

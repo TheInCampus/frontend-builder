@@ -84,18 +84,25 @@ function SortableCanvasItem({
   };
 
   return (
-    <button
+    <div
       {...attributes}
       {...listeners}
       aria-label={`Select ${component.label}`}
       className={`canvas-element${selected ? " selected" : ""}`}
       onClick={() => onSelect(component.id)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          onSelect(component.id);
+        }
+      }}
       ref={setNodeRef}
+      role="button"
       style={style}
-      type="button"
+      tabIndex={0}
     >
       <span className="canvas-element-label">{component.label}</span>
       <ComponentPreview component={component} />
-    </button>
+    </div>
   );
 }
