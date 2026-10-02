@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SignOutButton } from "@/features/auth/components/SignOutButton";
 import { useLocale } from "@/i18n/LocaleProvider";
-import type { Locale } from "@/i18n/config";
+import { localeNames, type Locale } from "@/i18n/config";
 
 export function SiteHeader() {
   const { locale, setLocale, t } = useLocale();
@@ -21,8 +21,9 @@ export function SiteHeader() {
         <label className="locale-select">
           <span className="visually-hidden">{t("language")}</span>
           <select aria-label={t("language")} onChange={(event) => setLocale(event.target.value as Locale)} value={locale}>
-            <option value="en">English</option>
-            <option value="es">Español</option>
+            {Object.entries(localeNames).map(([code, name]) => (
+              <option key={code} value={code}>{name}</option>
+            ))}
           </select>
         </label>
         {pathname.startsWith("/apps") && <SignOutButton className="button button-small button-secondary" />}
