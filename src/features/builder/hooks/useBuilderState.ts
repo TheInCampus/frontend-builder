@@ -1,44 +1,40 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { componentDefinitions } from "@/features/builder/components-registry";
+import { useEffect } from "react";
 import { loadPage, savePage } from "@/features/builder/serialization/storage";
-import type { BuilderComponent, BuilderComponentType } from "@/features/builder/types";
+import type { BuilderComponent, BuilderComponentType } from "@/types/json-schema";
+import { useBuilderStore } from "@/features/builder/state/store";
 
 export function useBuilderState(appId: string) {
-  const [components, setComponents] = useState<BuilderComponent[]>([]);
-  const [ready, setReady] = useState(false);
+  const components = useBuilderStore((state) => state.apps[appId]?.components ?? EMPTY_COMPONENTS);
+  const ready = useBuilderStore((state) => state.apps[appId]?.ready ?? false);
+  const initialize = useBuilderStore((state) => state.initialize);
+  const addComponentAction = useBuilderStore((state) => state.addComponent);
+  const updateComponentAction = useBuilderStore((state) => state.updateComponent);
+  const removeComponentAction = useBuilderStore((state) => state.removeComponent);
+  const reorderComponents = useBuilderStore((state) => state.reorderComponents);
 
   useEffect(() => {
-    setComponents(loadPage(appId)?.components ?? []);
-    setReady(true);
-  }, [appId]);
+    if (!ready) initialize(appId, loadPage(appId)?.components ?? []);
+  }, [appId, initialize, ready]);
 
   useEffect(() => {
     if (ready) savePage(appId, { components });
   }, [appId, components, ready]);
 
   function addComponent(type: BuilderComponentType) {
-    const definition = componentDefinitions.find((item) => item.type === type);
-    if (!definition) return;
-    setComponents((items) => [
-      ...items,
-      {
-        id: crypto.randomUUID(),
-        type,
-        label: definition.defaultLabel,
-        text: definition.defaultText,
-      },
-    ]);
+    addComponentAction(appId, type);
   }
 
   function updateComponent(id: string, updates: Partial<Pick<BuilderComponent, "label" | "text">>) {
-    setComponents((items) => items.map((item) => item.id === id ? { ...item, ...updates } : item));
+    updateComponentAction(appId, id, updates);
   }
 
   function removeComponent(id: string) {
-    setComponents((items) => items.filter((item) => item.id !== id));
+    removeComponentAction(appId, id);
   }
 
-  return { components, ready, addComponent, updateComponent, removeComponent };
+  return { components, ready, addComponent, updateComponent, removeComponent, reorderComponents };
 }
+
+const EMPTY_COMPONENTS: BuilderComponent[] = [];

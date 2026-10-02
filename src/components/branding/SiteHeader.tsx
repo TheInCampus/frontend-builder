@@ -1,0 +1,34 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { SignOutButton } from "@/features/auth/components/SignOutButton";
+import { useLocale } from "@/i18n/LocaleProvider";
+import { localeNames, type Locale } from "@/i18n/config";
+
+export function SiteHeader() {
+  const { locale, setLocale, t } = useLocale();
+  const pathname = usePathname();
+
+  return (
+    <header className="topbar">
+      <Link className="brand" href="/">
+        <span className="brand-mark">C</span>
+        Canvas
+      </Link>
+      <nav aria-label={t("workspaceNav")} className="topbar-nav">
+        {!pathname.startsWith("/apps") && <Link href="/apps">{t("myApps")}</Link>}
+        <label className="locale-select">
+          <span className="visually-hidden">{t("language")}</span>
+          <select aria-label={t("language")} onChange={(event) => setLocale(event.target.value as Locale)} value={locale}>
+            {Object.entries(localeNames).map(([code, name]) => (
+              <option key={code} value={code}>{name}</option>
+            ))}
+          </select>
+        </label>
+        {pathname.startsWith("/apps") && <SignOutButton className="button button-small button-secondary" />}
+        {!pathname.startsWith("/apps") && <Link className="button button-small" href="/login">{t("signIn")}</Link>}
+      </nav>
+    </header>
+  );
+}

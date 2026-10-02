@@ -1,12 +1,8 @@
-const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "");
-
 export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
-  if (!apiUrl) {
-    throw new Error("NEXT_PUBLIC_API_URL is not configured.");
-  }
-
-  const response = await fetch(`${apiUrl}/${path.replace(/^\/+/, "")}`, {
+  const normalizedPath = path.replace(/^\/+/, "");
+  const response = await fetch(`/api/platform/${normalizedPath}`, {
     ...init,
+    credentials: "same-origin",
     headers: {
       Accept: "application/json",
       ...init?.headers,
@@ -17,5 +13,6 @@ export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T
     throw new Error(`API request failed with status ${response.status}.`);
   }
 
+  if (response.status === 204) return undefined as T;
   return response.json() as Promise<T>;
 }

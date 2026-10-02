@@ -1,21 +1,5 @@
-import Link from "next/link";
+import { WorkspaceShell } from "@/components/ui/WorkspaceShell";
 
-export default function DashboardLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <div className="dashboard-shell">
-      <aside className="dashboard-sidebar">
-        <div className="sidebar-label">WORKSPACE</div>
-        <Link className="sidebar-link active" href="/apps"><span>▦</span> All apps</Link>
-        <div className="sidebar-label sidebar-label-spaced">YOUR SPACE</div>
-        <Link className="sidebar-link" href="/apps/demo"><span>◈</span> Untitled app</Link>
-        <Link className="sidebar-link" href="/apps/demo/data"><span>▤</span> Data model</Link>
-        <div className="sidebar-bottom">A simpler way to build.</div>
-      </aside>
-      <main className="dashboard-main">{children}</main>
-    </div>
-  );
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return <WorkspaceShell>{children}</WorkspaceShell>;
 }

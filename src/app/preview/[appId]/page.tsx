@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { PreviewApp } from "@/features/builder/components/PreviewApp";
+import { StandalonePreviewBar } from "@/features/builder/components/StandalonePreviewBar";
 
 export default async function AppPreviewPage({
   params,
@@ -10,11 +10,7 @@ export default async function AppPreviewPage({
 
   return (
     <main className="standalone-preview">
-      <header className="standalone-preview-bar">
-        <Link className="brand" href="/apps"><span className="brand-mark">C</span> Canvas</Link>
-        <span>Preview · Untitled app</span>
-        <Link className="text-link" href={`/apps/${appId}/builder`}>Back to editor ↗</Link>
-      </header>
+      <StandalonePreviewBar appId={appId} />
       <PreviewApp appId={appId} />
     </main>
   );

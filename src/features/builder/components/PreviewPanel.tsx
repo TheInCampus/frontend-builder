@@ -1,4 +1,5 @@
-import type { BuilderComponent } from "@/features/builder/types";
+import type { BuilderComponent } from "@/types/json-schema";
+import { useLocale } from "@/i18n/LocaleProvider";
 
 function RenderComponent({ component }: { component: BuilderComponent }) {
   switch (component.type) {
@@ -10,13 +11,14 @@ function RenderComponent({ component }: { component: BuilderComponent }) {
 }
 
 export function PreviewPanel({ components }: { components: BuilderComponent[] }) {
+  const { t } = useLocale();
   return (
     <div className="live-preview">
       <div className="live-preview-device">
         <div className="live-preview-content">
           {components.length
             ? components.map((component) => <RenderComponent component={component} key={component.id} />)
-            : <div className="preview-empty"><span>✳</span><h2>Your app will show up here.</h2><p>Add components to see them in your preview.</p></div>}
+            : <div className="preview-empty"><span>✳</span><h2>{t("appAppearsHere")}</h2><p>{t("addToSeePreview")}</p></div>}
         </div>
       </div>
     </div>
