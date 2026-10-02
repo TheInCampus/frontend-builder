@@ -64,17 +64,16 @@ This is the structure that exists today; planned target modules are deliberately
 ```text
 src/
 ├── app/                         # Next.js routes, layouts, and same-origin API routes
-│   ├── (auth)/                  # Login and signup
+│   ├── (auth)/                  # Login, signup, and password recovery
 │   ├── (dashboard)/apps/        # App listing, overview, builder, and data model
 │   ├── api/auth/[action]/       # Auth proxy
 │   ├── api/platform/[...path]/  # Platform API proxy
-│   ├── forget/
 │   └── preview/[appId]/
 ├── components/                  # Shared application components/providers
 ├── features/
-│   ├── apps/                    # App listing and creation
+│   ├── apps/                    # App listing, creation, and overview
 │   ├── auth/                    # Auth forms, API calls, and sign-out
-│   ├── builder/                 # Canvas, component palette, inspector, preview, state
+│   ├── builder/                 # Canvas, standalone preview, inspector, preview, state
 │   └── data-modeling/           # Basemodel editor, serialization, and types
 ├── i18n/                        # English/Spanish messages and locale provider
 ├── lib/api/                     # Same-origin platform API client

@@ -1,5 +1,5 @@
 import { PreviewApp } from "@/features/builder/components/PreviewApp";
-import { StandalonePreviewBar } from "@/components/StandalonePreviewBar";
+import { StandalonePreviewBar } from "@/features/builder/components/StandalonePreviewBar";
 
 export default async function AppPreviewPage({
   params,
