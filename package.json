@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "mock-api": "node mock-api/server.mjs",
+    "mock-api:seed": "node mock-api/seed.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },
