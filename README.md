@@ -50,8 +50,7 @@ All architectural modules must strictly utilize the following specific resources
 ## 📂 Unified Project Directory Matrix
 
 ```text
-src                  # Epic 0 planning and deferred Epic 2 backlog
-=======
+src/
 ├── app/                                # NEXT.JS ROUTING SHELL (APP ROUTER)
 │   ├── page.tsx                        # Public Landing Page (Offerings, Redirection, Guest Trial entrance)
 │   ├── (auth)/                         # Authentication Route Group (Proxied to Spring Boot backend)
@@ -109,7 +108,6 @@ src                  # Epic 0 planning and deferred Epic 2 backlog
 └── types/                              # TRANS-COMPILATION SYSTEM CONTRACT TYPES
     ├── metadata.ts                     # Interfaces for BaseModel configurations, fields, and entities
     └── json-schema.ts                  # Target layouts for design configuration objects
->>>>>>> a1bdcbc (updated readme)
 ```
 
 ---
