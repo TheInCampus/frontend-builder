@@ -55,7 +55,7 @@ BuilderPage ──renders──> BuilderShell
    - `PropertyInspector` receives the selected component and reports edits or deletion through `onUpdate` and `onDelete`.
    - `PreviewPanel` receives the same component list when the in-editor Preview tab is selected.
 4. Add, edit, remove, and reorder actions update the app-specific Zustand state. Selecting a canvas item is separate, temporary UI state held by `BuilderShell`; it is not part of the saved page.
-5. When the component list changes, the hook serializes `{ components }` to localStorage under `canvas-builder:${encodeURIComponent(appId)}`. The builder's save status is based on this client-side initialization and persistence.
+5. When the component list changes, the hook serializes `{ components }` to localStorage under `canvas-builder:${encodeURIComponent(appId)}`. The builder's current save indicator reflects whether the hook has initialized; it does not report a server save or confirm that every browser-storage write succeeded.
 
 The current component model is deliberately small: each component has an `id`, a `type` (`heading`, `text`, `button`, or `card`), a `label`, and `text`. The canvas renderer, inspector, and preview renderer handle these types directly.
 
@@ -81,7 +81,7 @@ The Basemodel editor is a distinct feature from the visual page builder:
 DataModelingWorkspace
        │ useDataModel(appId)
        ├── TanStack Query cache: ["basemodel", appId]
-       ├── localStorage: canvas-basemodel:<encoded appId>
+       ├── localStorage: canvas-data-model:<encoded appId>
        └── same-origin API: /api/platform/metaplatform/apps/{appId}/basemodel
 ```
 
